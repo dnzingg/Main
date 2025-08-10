@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-
 local function getMarineButton()
     local playerGui = player:WaitForChild("PlayerGui")
     local preload = playerGui:WaitForChild("Preload")
@@ -8,9 +7,7 @@ local function getMarineButton()
     local marineButton = chooseTeam:WaitForChild("MarineButton")
     return marineButton, preload
 end
-
 local marineButton, preloadGui = getMarineButton()
-
 repeat
     task.wait(0.1)
     if marineButton and marineButton:IsA("GuiButton") then
