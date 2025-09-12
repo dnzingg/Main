@@ -2,4 +2,4 @@ if game.PlaceId == 155615604 then
 loadstring(game:HttpGet("https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubPrisonLife"))()
 else
 game.Players.LocalPlayer:Kick("game not supported!")
-enc
+end
