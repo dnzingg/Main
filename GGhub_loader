@@ -1,0 +1,5 @@
+if game.PlaceId == 155615604 then
+
+else
+game.Players.LocalPlayer:Kick("game not supported!")
+enc
