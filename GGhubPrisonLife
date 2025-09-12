@@ -1,0 +1,257 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed
+local defaultJumpHeight = plr.Character.Humanoid.JumpHeight
+local defaultJumpPower = plr.Character.Humanoid.JumpPower
+local TS = game:GetService("TweenService")
+
+local Window = Rayfield:CreateWindow({
+   Name = "GG hub - Prison Life",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "Loading...",
+   LoadingSubtitle = "by DNzinGG",
+   ShowText = "GG hub", -- for mobile users to unhide rayfield, change if you'd like
+   Theme = "Dark Blue", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = "GG_hub", -- Create a custom folder for your hub/game
+      FileName = "GG hub - Prison Life"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   }})
+   
+local Main = Window:CreateTab("Main", "rewind")
+local Teleports = Window:CreateTab("Teleports", "rewind")
+local Others = Window:CreateTab("Others", "rewind")
+
+-- Functions
+local function GetAK()
+local args = {
+	workspace:WaitForChild("Prison_ITEMS"):WaitForChild("giver"):WaitForChild("AK-47"):WaitForChild("ITEMPICKUP")
+}
+workspace:WaitForChild("Remote"):WaitForChild("ItemHandler"):InvokeServer(unpack(args))
+end
+
+local function GetRemington()
+local args = {
+	workspace:WaitForChild("Prison_ITEMS"):WaitForChild("giver"):WaitForChild("Remington 870"):WaitForChild("ITEMPICKUP")
+}
+workspace:WaitForChild("Remote"):WaitForChild("ItemHandler"):InvokeServer(unpack(args))
+end
+
+local ButtonBecomeAInmate = Main:CreateButton({
+	Name = "Become a Inmate",
+	Callback = function()
+	local args = {
+	"Bright orange"
+}
+workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
+	end,
+	})
+
+local SliderWalkSpeed = Others:CreateSlider({
+   Name = "Change WalkSpeed",
+   Range = {0, 1000},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = plr.Character.Humanoid.WalkSpeed,
+   Flag = "SliderWalkSpeed",
+   Callback = function(Value)
+   plr.Character.Humanoid.WalkSpeed = Value
+   end,
+})
+
+local SliderJumpPower = Others:CreateSlider({
+   Name = "Change JumpPower",
+   Range = {0, 500},
+   Increment = 1,
+   Suffix = "JumpPower",
+   CurrentValue = plr.Character.Humanoid.JumpPower,
+   Flag = "SliderJumpPower",
+   Callback = function(Value)
+   plr.Character.Humanoid.JumpPower = Value
+   end,
+})
+
+local ButtonResetWalkSpeed = Others:CreateButton({
+   Name = "Reset WalkSpeed",
+   Callback = function()
+plr.Character.Humanoid.WalkSpeed = defaultWalkSpeed
+SliderWalkSpeed:Set(defaultWalkSpeed)
+   end,
+})
+
+local ButtonResetJumpPower = Others:CreateButton({
+   Name = "Reset JumpPower",
+   Callback = function()
+plr.Character.Humanoid.JumpPower = defaultJumpPower
+SliderJumpPower:Set(defaultJumpPower)
+   end,
+})
+
+
+local ToggleInfiniteJump = Others:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Flag = "ToggleInfiniteJump",
+   Callback = function(Value)
+   if Value == true then
+   local UserInputService = game:GetService("UserInputService")
+UserInputService.JumpRequest:Connect(function()
+	if plr.Character:WaitForChild("Humanoid") then
+		plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	end
+end)
+elseif Value == false then
+for _, connection in pairs(getconnections(game:GetService("UserInputService").JumpRequest)) do
+	connection:Disconnect()
+end
+end
+   end,
+})
+
+local ButtonGetTPTool = Others:CreateButton({
+   Name = "Get TP Tool",
+   Callback = function()
+   local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local Backpack = player:WaitForChild("Backpack")
+
+if Backpack:FindFirstChild("TPTool") then
+	Backpack.TPTool:Destroy()
+end
+
+local tool = Instance.new("Tool")
+tool.Name = "TPTool"
+tool.RequiresHandle = false
+tool.CanBeDropped = false
+tool.Parent = Backpack
+
+local soundId = "rbxassetid://9118823109"
+
+tool.Activated:Connect(function()
+	local mouse = player:GetMouse()
+	local character = player.Character
+	if not character then return end
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	local targetPos = mouse.Hit.p + Vector3.new(0, 3, 0)
+
+	local sound = Instance.new("Sound")
+	sound.SoundId = soundId
+	sound.Volume = 1
+	sound.Parent = root
+	sound:Play()
+	game.Debris:AddItem(sound, 2)
+
+	root.CFrame = CFrame.new(targetPos)
+end)
+   end,
+})
+
+local ButtonForceReset = Others:CreateButton({
+Name = "Force Reset",
+Callback = function()
+plr.Character.Humanoid.Health = 0
+end,
+})
+
+local ButtonBecomeACriminal = Main:CreateButton({
+  Name = "Become a Criminal",
+    Callback = function()
+    local oldCFrame = plr.Character.HumanoidRootPart.CFrame
+    plr.Character.HumanoidRootPart.CFrame = CFrame.new(-976, 109, 2054)
+    task.wait(0.2)
+    plr.Character.HumanoidRootPart.CFrame = oldCFrame
+    end,
+})
+
+    local ButtonBecomeAGuard = Main:CreateButton({
+   Name = "Become a Guard",
+    Callback = function()
+    local args = {
+	"Bright blue"
+}
+workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
+    end,
+})
+    
+    local ButtonTeleportCriminalBase = Teleports:CreateButton({
+   Name = "teleport to the Criminals' base",
+   Callback = function()
+    local hrp = plr.Character.HumanoidRootPart
+    hrp.CFrame = CFrame.new(-921, 95, 2140)
+    end,
+    })
+    
+    local ButtonTeleportPrisonFence = Teleports:CreateButton({
+   Name = "teleport to the Prison Fence",
+   Callback = function()
+    local hrp = plr.Character.HumanoidRootPart
+    hrp.CFrame = CFrame.new(856, 125, 2591)
+    end,
+    })
+    
+    local ButtonTeleportPrisonSaddle = Teleports:CreateButton({
+   Name = "teleport to the Prison Saddle",
+   Callback = function()
+    local hrp = plr.Character.HumanoidRootPart
+    hrp.CFrame = CFrame.new(918, 100, 2473)
+    end,
+    })
+    
+    local ButtonTeleportCity = Teleports:CreateButton({
+   Name = "teleport to the City",
+   Callback = function()
+    local hrp = plr.Character.HumanoidRootPart
+    hrp.CFrame = CFrame.new(-324, 54, 1714)
+    end,
+    })
+   
+   local ButtonGetAK47 = Main:CreateButton({
+   	Name = "Get AK-47",
+   Callback = function()
+   local oldCFrame = plr.Character.HumanoidRootPart.CFrame
+   plr.Character.HumanoidRootPart.CFrame = CFrame.new(-940.938232, 94.1287766, 2056.22998, 0.00918374304, 2.63185047e-08, -0.9999578, -3.20159614e-08, 1, 2.60255764e-08, 0.9999578, 3.1775599e-08, 0.00918374304)
+   repeat task.wait(0.1)
+   GetAK()
+   GetAK()
+   GetAK()
+   GetAK()
+   task.wait(0.1)
+   plr.Character.HumanoidRootPart.CFrame = oldCFrame
+   until plr.Character.Backpack:WaitForChild("AK-47") == true
+end,
+   })
+   
+   local ButtonGetRemington = Main:CreateButton({
+   	Name = "Get Remington",
+   Callback = function()
+   for _,v in pairs(game:GetDescendants()) do
+if v:IsA("Tool") and v.Name == "Remington 870" then
+local clone = v:Clone()
+clone.Parent = plr.Backpack
+end  
+end
+   end,
+})
+  
+   local ButtonFlyGui = Others:CreateButton({
+	Name = "Fly Gui",
+	Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+	end,
+	})
