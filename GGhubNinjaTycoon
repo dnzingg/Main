@@ -1,9 +1,8 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
 local plrs = game:GetService("Players")
 local plr = plrs.LocalPlayer
 
--- Espera o Character carregar
 local function getHumanoid()
 	local char = plr.Character or plr.CharacterAdded:Wait()
 	return char:WaitForChild("Humanoid"), char
@@ -14,7 +13,6 @@ local defaultWalkSpeed = hum.WalkSpeed
 local defaultJumpPower = hum.JumpPower
 local TS = game:GetService("TweenService")
 
--- UI
 local Window = Rayfield:CreateWindow({
    Name = "GG hub - Ninja Tycoon",
    Icon = 0,
@@ -25,13 +23,11 @@ local Window = Rayfield:CreateWindow({
    ToggleUIKeybind = "K",
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false,
-
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "GG_hub",
       FileName = "GG hub - Ninja Tycoon"
    },
-
    Discord = {
       Enabled = false,
       Invite = "noinvitelink",
@@ -43,7 +39,6 @@ local Main = Window:CreateTab("Main", "rewind")
 local Teleports = Window:CreateTab("Teleports", "rewind")
 local Others = Window:CreateTab("Others", "rewind")
 
--- Sliders
 local SliderWalkSpeed = Others:CreateSlider({
    Name = "Change WalkSpeed",
    Range = {0, 1000},
@@ -82,7 +77,6 @@ Others:CreateButton({
    end,
 })
 
--- Infinite Jump
 local UserInputService = game:GetService("UserInputService")
 local infiniteJumpConnection
 
@@ -104,7 +98,6 @@ Others:CreateToggle({
    end,
 })
 
--- TP Tool
 Others:CreateButton({
    Name = "Get TP Tool",
    Callback = function()
@@ -129,14 +122,12 @@ Others:CreateButton({
          if not root then return end
 
          local targetPos = mouse.Hit.Position + Vector3.new(0, 3, 0)
-
          local sound = Instance.new("Sound")
          sound.SoundId = soundId
          sound.Volume = 1
          sound.Parent = root
          sound:Play()
          game.Debris:AddItem(sound, 2)
-
          root.CFrame = CFrame.new(targetPos)
       end)
    end,
@@ -157,7 +148,6 @@ Others:CreateButton({
    end,
 })
 
--- Auto Cash
 Main:CreateToggle({
    Name = "Auto Cash",
    CurrentValue = false,
@@ -165,7 +155,6 @@ Main:CreateToggle({
       getgenv().autoCash = AutoCash
 
       local hrp, tool
-
       local function setupCharacter(newChar)
          char = newChar
          hum = char:WaitForChild("Humanoid")
@@ -173,20 +162,18 @@ Main:CreateToggle({
          tool = plr.Backpack:FindFirstChild("Combat") or char:FindFirstChild("Combat")
       end
 
-      if plr.Character then
-         setupCharacter(plr.Character)
-      end
+      if plr.Character then setupCharacter(plr.Character) end
       plr.CharacterAdded:Connect(setupCharacter)
 
       local function attackNPC(npc)
          if not (char and hrp) then return end
          local npcHrp = npc:FindFirstChild("HumanoidRootPart")
          if npcHrp then
-            hrp.CFrame = npcHrp.CFrame * CFrame.new(-3, 0, 0)
+            hrp.CFrame = npcHrp.CFrame * CFrame.new(0, 0, 3.5)
             if tool and tool.Parent ~= char then
+            task.wait(0.1)
                tool.Parent = char
             end
-
             local combat = char:FindFirstChild("Combat")
             if combat and combat:FindFirstChild("Attack") then
                combat.Attack:FireServer()
@@ -207,9 +194,7 @@ Main:CreateToggle({
       task.spawn(function()
          while getgenv().autoCash do
             task.wait(0.15)
-
             if not (char and hrp) then continue end
-
             local scroll = workspace:FindFirstChild("CashScroll")
             if scroll then
                collectCashScroll()
@@ -223,4 +208,45 @@ Main:CreateToggle({
          end
       end)
    end,
+})
+
+Teleports:CreateButton({
+	Name = "Teleport to Store",
+	Callback = function()
+		local hrp = plr.Character.HumanoidRootPart
+		hrp.CFrame = CFrame.new(764, 732, -486)
+	end,
+})
+
+Teleports:CreateButton({
+	Name = "Teleport to your Tycoon",
+	Callback = function()
+		local hrp = plr.Character.HumanoidRootPart
+		for _, base in pairs(workspace["Zednov's Tycoon Kit"].Tycoons:GetChildren()) do
+			if base.Owner.Value == plr then
+				hrp.CFrame = base.Essentials.Spawn.CFrame 
+			end
+		end
+	end,
+})
+
+Main:CreateToggle({
+	Name = "Auto Collect Cash",
+	CurrentValue = false,
+	Callback = function(Value)
+		getgenv().autoCollectCash = Value
+		task.spawn(function()
+			while getgenv().autoCollectCash do
+				task.wait(0.5)
+				local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+				if not hrp then continue end
+				for _, base in pairs(workspace["Zednov's Tycoon Kit"].Tycoons:GetChildren()) do
+					if base.Owner.Value == plr then
+						firetouchinterest(hrp, base.Essentials.Giver, 0)
+						firetouchinterest(hrp, base.Essentials.Giver, 1)
+					end
+				end
+			end
+		end)
+	end,
 })
