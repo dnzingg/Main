@@ -1,5 +1,13 @@
-if game.PlaceId == 155615604 then
-loadstring(game:HttpGet("https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubPrisonLife"))()
+local games = {
+    [155615604] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubPrisonLife", -- Prison Life
+    [221718525] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubNinjaTycoon" -- Ninja Tycoon
+}
+
+local placeId = game.PlaceId
+local scriptUrl = games[placeId]
+
+if scriptUrl then
+    loadstring(game:HttpGet(scriptUrl))()
 else
-game.Players.LocalPlayer:Kick("game not supported!")
+    game.Players.LocalPlayer:Kick("Game not supported!")
 end
