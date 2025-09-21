@@ -1,0 +1,226 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+
+-- Espera o Character carregar
+local function getHumanoid()
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	return char:WaitForChild("Humanoid"), char
+end
+
+local hum, char = getHumanoid()
+local defaultWalkSpeed = hum.WalkSpeed
+local defaultJumpPower = hum.JumpPower
+local TS = game:GetService("TweenService")
+
+-- UI
+local Window = Rayfield:CreateWindow({
+   Name = "GG hub - Ninja Tycoon",
+   Icon = 0,
+   LoadingTitle = "Loading...",
+   LoadingSubtitle = "by DNzinGG",
+   ShowText = "GG hub",
+   Theme = "Dark Blue",
+   ToggleUIKeybind = "K",
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "GG_hub",
+      FileName = "GG hub - Ninja Tycoon"
+   },
+
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   }
+})
+
+local Main = Window:CreateTab("Main", "rewind")
+local Teleports = Window:CreateTab("Teleports", "rewind")
+local Others = Window:CreateTab("Others", "rewind")
+
+-- Sliders
+local SliderWalkSpeed = Others:CreateSlider({
+   Name = "Change WalkSpeed",
+   Range = {0, 1000},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = hum.WalkSpeed,
+   Callback = function(Value)
+      hum.WalkSpeed = Value
+   end,
+})
+
+local SliderJumpPower = Others:CreateSlider({
+   Name = "Change JumpPower",
+   Range = {0, 500},
+   Increment = 1,
+   Suffix = "JumpPower",
+   CurrentValue = hum.JumpPower,
+   Callback = function(Value)
+      hum.JumpPower = Value
+   end,
+})
+
+Others:CreateButton({
+   Name = "Reset WalkSpeed",
+   Callback = function()
+      hum.WalkSpeed = defaultWalkSpeed
+      SliderWalkSpeed:Set(defaultWalkSpeed)
+   end,
+})
+
+Others:CreateButton({
+   Name = "Reset JumpPower",
+   Callback = function()
+      hum.JumpPower = defaultJumpPower
+      SliderJumpPower:Set(defaultJumpPower)
+   end,
+})
+
+-- Infinite Jump
+local UserInputService = game:GetService("UserInputService")
+local infiniteJumpConnection
+
+Others:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Callback = function(Value)
+      if Value and not infiniteJumpConnection then
+         infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
+            local h = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+            if h then
+               h:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+         end)
+      elseif not Value and infiniteJumpConnection then
+         infiniteJumpConnection:Disconnect()
+         infiniteJumpConnection = nil
+      end
+   end,
+})
+
+-- TP Tool
+Others:CreateButton({
+   Name = "Get TP Tool",
+   Callback = function()
+      local Backpack = plr:WaitForChild("Backpack")
+      if Backpack:FindFirstChild("TPTool") then
+         Backpack.TPTool:Destroy()
+      end
+
+      local tool = Instance.new("Tool")
+      tool.Name = "TPTool"
+      tool.RequiresHandle = false
+      tool.CanBeDropped = false
+      tool.Parent = Backpack
+
+      local soundId = "rbxassetid://9118823109"
+
+      tool.Activated:Connect(function()
+         local mouse = plr:GetMouse()
+         local character = plr.Character
+         if not character then return end
+         local root = character:FindFirstChild("HumanoidRootPart")
+         if not root then return end
+
+         local targetPos = mouse.Hit.Position + Vector3.new(0, 3, 0)
+
+         local sound = Instance.new("Sound")
+         sound.SoundId = soundId
+         sound.Volume = 1
+         sound.Parent = root
+         sound:Play()
+         game.Debris:AddItem(sound, 2)
+
+         root.CFrame = CFrame.new(targetPos)
+      end)
+   end,
+})
+
+Others:CreateButton({
+   Name = "Force Reset",
+   Callback = function()
+      local h = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid")
+      if h then h.Health = 0 end
+   end,
+})
+
+Others:CreateButton({
+   Name = "Fly Gui",
+   Callback = function()
+      loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+   end,
+})
+
+-- Auto Cash
+Main:CreateToggle({
+   Name = "Auto Cash",
+   CurrentValue = false,
+   Callback = function(AutoCash)
+      getgenv().autoCash = AutoCash
+
+      local hrp, tool
+
+      local function setupCharacter(newChar)
+         char = newChar
+         hum = char:WaitForChild("Humanoid")
+         hrp = char:WaitForChild("HumanoidRootPart")
+         tool = plr.Backpack:FindFirstChild("Combat") or char:FindFirstChild("Combat")
+      end
+
+      if plr.Character then
+         setupCharacter(plr.Character)
+      end
+      plr.CharacterAdded:Connect(setupCharacter)
+
+      local function attackNPC(npc)
+         if not (char and hrp) then return end
+         local npcHrp = npc:FindFirstChild("HumanoidRootPart")
+         if npcHrp then
+            hrp.CFrame = npcHrp.CFrame * CFrame.new(-3, 0, 0)
+            if tool and tool.Parent ~= char then
+               tool.Parent = char
+            end
+
+            local combat = char:FindFirstChild("Combat")
+            if combat and combat:FindFirstChild("Attack") then
+               combat.Attack:FireServer()
+            end
+         end
+      end
+
+      local function collectCashScroll()
+         if not hrp then return end
+         local scroll = workspace:FindFirstChild("CashScroll")
+         if scroll and scroll:FindFirstChild("PP") then
+            hrp.CFrame = scroll.CFrame
+            task.wait(0.1)
+            fireproximityprompt(scroll.PP)
+         end
+      end
+
+      task.spawn(function()
+         while getgenv().autoCash do
+            task.wait(0.15)
+
+            if not (char and hrp) then continue end
+
+            local scroll = workspace:FindFirstChild("CashScroll")
+            if scroll then
+               collectCashScroll()
+            else
+               for _, npc in ipairs(workspace:GetChildren()) do
+                  if npc:IsA("Model") and (npc.Name == "Rogue Ninja" or npc.Name == "Reanimated Ninja") then
+                     attackNPC(npc)
+                  end
+               end
+            end
+         end
+      end)
+   end,
+})
