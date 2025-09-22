@@ -4,23 +4,34 @@ local plr = Players.LocalPlayer
 local TS = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
 
 local char, hum
+
 local function updateCharacter(c)
     char = c or plr.Character or plr.CharacterAdded:Wait()
     hum = char:WaitForChild("Humanoid")
 end
-if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
+
+if plr.Character then
+    updateCharacter(plr.Character)
+else
+    plr.CharacterAdded:Wait()
+    updateCharacter(plr.Character)
+end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed = hum and hum.WalkSpeed or 16
-local defaultJumpPower = hum and hum.JumpPower or 50
+local defaultWalkSpeed = 30
+local defaultJumpPower = 50
 local originalTool = "Combat"
 getgenv().currentBoss = "None"
 getgenv().autoScrolls = false
 getgenv().currentItem = "None"
+getgenv().autoKillNinja = false
+getgenv().autoBoss = false
+getgenv().autoCollectCash = false
 
--- UI
 local Window = Rayfield:CreateWindow({
    Name = "GG hub - Ninja Tycoon",
    Icon = 0,
@@ -33,11 +44,11 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
+local RyoShop = Window:CreateTab("RyoShop", 106150658366153)
 local Shop = Window:CreateTab("Shop", 11385395241)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
--- Ferramentas
 local function getTools()
     local tools = {}
     local backpack = plr:FindFirstChild("Backpack")
@@ -67,18 +78,17 @@ local ButtonRefreshWeapon = Main:CreateButton({
     Callback = function() DropdownSelectWeapon:Refresh(getTools()) end,
 })
 
--- Sliders velocidade/pulo
 local SliderWalkSpeed = Others:CreateSlider({
    Name = "Change WalkSpeed",
    Range = {0, 1000},
-   Increment = 1,
-   CurrentValue = hum and hum.WalkSpeed or 16,
+   Increment = 5,
+   CurrentValue = hum and hum.WalkSpeed or 30,
    Callback = function(Value) if hum then hum.WalkSpeed = Value end end,
 })
 local SliderJumpPower = Others:CreateSlider({
    Name = "Change JumpPower",
    Range = {0, 1000},
-   Increment = 1,
+   Increment = 5,
    CurrentValue = hum and hum.JumpPower or 50,
    Callback = function(Value) if hum then hum.JumpPower = Value end end,
 })
@@ -92,7 +102,6 @@ local ToggleInfiniteJump = Others:CreateToggle({
    CurrentValue = false,
    Flag = "ToggleInfiniteJump",
    Callback = function(Value)
-       local UserInputService = game:GetService("UserInputService")
        if Value == true then
            if jumpConnection then jumpConnection:Disconnect() end
            jumpConnection = UserInputService.JumpRequest:Connect(function()
@@ -105,7 +114,6 @@ local ToggleInfiniteJump = Others:CreateToggle({
    end,
 })
 
--- TP Tool
 local ButtonTPTool = Others:CreateButton({
    Name = "Get TP Tool",
    Callback = function()
@@ -129,21 +137,19 @@ local ButtonTPTool = Others:CreateButton({
          sound.Volume = 1
          sound.Parent = root
          sound:Play()
-         game.Debris:AddItem(sound, 2)
+         Debris:AddItem(sound, 2)
          root.CFrame = CFrame.new(targetPos)
       end)
    end,
 })
 
 Others:CreateButton({ Name = "Force Reset", Callback = function() local h = plr.Character and plr.Character:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
-Others:CreateButton({ Name = "Fly Gui", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
 
--- Notificação
 local function notify(msg)
     StarterGui:SetCore("SendNotification", { Title = "GG Hub", Text = msg, Duration = 1 })
 end
 
--- Scrolls
 local function findPromptAndPart(root)
     for _, d in ipairs(root:GetDescendants()) do
         if d:IsA("ProximityPrompt") then return d, d.Parent end
@@ -151,6 +157,7 @@ local function findPromptAndPart(root)
     local part = root:FindFirstChildWhichIsA("BasePart") or root.PrimaryPart
     return nil, part
 end
+
 local function collectScrolls()
     if not getgenv().autoScrolls then return end
     local character = plr.Character
@@ -159,37 +166,37 @@ local function collectScrolls()
     for _, obj in ipairs(Workspace:GetChildren()) do
         local name = obj.Name or ""
         if type(name) == "string" and (name == "CashScroll" or name == "EScroll" or name:match("Scroll")) then
-            if not obj or not obj.Parent then break end
-            local prompt, part = findPromptAndPart(obj)
-            if prompt and part and part:IsA("BasePart") then
-                pcall(function() hrp.CFrame = part.CFrame + Vector3.new(0, 2.5, 0) end)
-                task.wait(0.12)
-                pcall(function() fireproximityprompt(prompt) end)
-                notify("Get: " .. obj.Name)
-                task.wait(0.2)
-            elseif part and part:IsA("BasePart") then
-                pcall(function() hrp.CFrame = part.CFrame + Vector3.new(0, 2.5, 0) end)
-                task.wait(0.12)
-                pcall(function()
-                    firetouchinterest(hrp, part, 0)
-                    task.wait(0.05)
-                    firetouchinterest(hrp, part, 1)
-                end)
-                notify("Get: " .. obj.Name)
-                task.wait(0.2)
+            if not obj or not obj.Parent then else
+                local prompt, part = findPromptAndPart(obj)
+                if prompt and part and part:IsA("BasePart") then
+                    pcall(function() hrp.CFrame = part.CFrame + Vector3.new(0, 2.5, 0) end)
+                    task.wait(0.12)
+                    pcall(function() fireproximityprompt(prompt) end)
+                    notify("Get: " .. obj.Name)
+                    task.wait(0.2)
+                elseif part and part:IsA("BasePart") then
+                    pcall(function() hrp.CFrame = part.CFrame + Vector3.new(0, 2.5, 0) end)
+                    task.wait(0.12)
+                    pcall(function()
+                        firetouchinterest(hrp, part, 0)
+                        task.wait(0.05)
+                        firetouchinterest(hrp, part, 1)
+                    end)
+                    notify("Get: " .. obj.Name)
+                    task.wait(0.2)
+                end
             end
         end
     end
 end
 
--- Funções NPC
 local function findNearestNPC(hrp)
     if not hrp then return nil end
     local nearest, minDist = nil, math.huge
     for _, obj in ipairs(Workspace:GetChildren()) do
         if obj:IsA("Model") and (obj.Name == "Rogue Ninja" or obj.Name == "Reanimated Ninja") then
             local npcHrp, npcHum = obj:FindFirstChild("HumanoidRootPart"), obj:FindFirstChildOfClass("Humanoid")
-            if npcHrp and npcHum and npcHum.Health > 0 then
+            if npcHrp and npcHum and npcHum.Health and npcHum.Health > 0 then
                 local dist = (npcHrp.Position - hrp.Position).Magnitude
                 if dist < minDist then minDist, nearest = dist, obj end
             end
@@ -198,149 +205,146 @@ local function findNearestNPC(hrp)
     return nearest
 end
 
+local function safeActivateTool(tool)
+    if not tool then return end
+    pcall(function() if typeof(tool.Activate) == "function" then tool:Activate() end end)
+    pcall(function() if tool:FindFirstChild("Attack") and tool.Attack.FireServer then tool.Attack:FireServer() end end)
+end
+
+local function equipTool(name)
+    if not name then return nil end
+    local tool = nil
+    if char then tool = char:FindFirstChild(name) end
+    if not tool and plr:FindFirstChild("Backpack") then tool = plr.Backpack:FindFirstChild(name) end
+    if tool and tool.Parent ~= char then pcall(function() tool.Parent = char end) task.wait(0.06) end
+    if tool and tool.Parent == char then return tool end
+    return nil
+end
+
 local function attackNPC(npc)
     if not npc or not char or not hum then return end
-    local npcHum, npcHrp = npc:FindFirstChildOfClass("Humanoid"), npc:FindFirstChild("HumanoidRootPart")
+    local npcHum = npc:FindFirstChildOfClass("Humanoid")
+    local npcHrp = npc:FindFirstChild("HumanoidRootPart")
     if not npcHum or not npcHrp then return end
-    
-    pcall(function()
-    if npcHrp.TouchInterest then
-    npcHrp.TouchInterest:Destroy()
-    else
-    return end
-    end)
-    while npcHum.Parent and npcHum.Health > 0 and hum.Health > 0 and (getgenv().autoKillNinja or getgenv().autoBoss) do
+    while npcHum.Parent and npcHum.Health and npcHum.Health > 0 and hum.Health > 0 and (getgenv().autoKillNinja or getgenv().autoBoss) do
         if getgenv().autoScrolls then collectScrolls() end
-
         local root = char and char:FindFirstChild("HumanoidRootPart")
-        if root then root.CFrame = npcHrp.CFrame * CFrame.new(0, 0, 0.3) end
-
-        local toolObj = (char and char:FindFirstChild(originalTool)) or plr.Backpack:FindFirstChild(originalTool)
-        if toolObj and toolObj.Parent ~= char then pcall(function() toolObj.Parent = char end) task.wait(0.06) end
-
-        local combatTool = char and char:FindFirstChild(originalTool)
-        if combatTool then
-            if combatTool:FindFirstChild("Attack") then pcall(function() combatTool.Attack:FireServer() end)
-            else pcall(function() if combatTool.Activate then combatTool:Activate() end end) end
+        if not root then break end
+        pcall(function() root.CFrame = npcHrp.CFrame * CFrame.new(0, 0, 3.5) end)
+        local toolObj = equipTool(originalTool)
+        if toolObj then safeActivateTool(toolObj) end
+        local seisha = char:FindFirstChild("SeishaAttack")
+        if seisha then
+            local seishaRemote = seisha:FindFirstChildWhichIsA("RemoteEvent")
+            if seishaRemote then pcall(function() seishaRemote:FireServer() end) end
         end
-
-        local seishaRemote = char:FindFirstChild("SeishaAttack") and char.SeishaAttack:FindFirstChild("RemoteEvent")
-        if seishaRemote then pcall(function() seishaRemote:FireServer() end) end
-
         task.wait(0.18)
     end
 end
 
--- Auto kill Ninjas
+local BossOptions = {"None","Kaguyai","Nadara","Coldjason","Juubito","Oroshimaro","Mizouki","Pain"}
+local SelectedBosses = {}
+
+local BossDropdown = Main:CreateDropdown({
+   Name = "Select Boss(es)",
+   Options = BossOptions,
+   CurrentOption = "None",
+   MultipleOptions = true,
+   Flag = "SelectBoss",
+   Callback = function(Options)
+      if type(Options) == "table" then SelectedBosses = Options else SelectedBosses = {Options} end
+      local cleaned = {}
+      for _, v in ipairs(SelectedBosses) do if v ~= "None" then table.insert(cleaned, v) end end
+      SelectedBosses = cleaned
+   end,
+})
+
+local function getAliveSelectedBosses()
+    local bosses = {}
+    for _, obj in ipairs(Workspace:GetChildren()) do
+        if obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
+            for _, name in ipairs(SelectedBosses) do
+                if obj.Name == name then
+                    local bHum = obj:FindFirstChildOfClass("Humanoid")
+                    if bHum and bHum.Health > 0 then table.insert(bosses, obj) end
+                    break
+                end
+            end
+        end
+    end
+    return bosses
+end
+
 Main:CreateToggle({
     Name = "Auto kill Ninjas",
     CurrentValue = false,
     Callback = function(Value)
         getgenv().autoKillNinja = Value
-        if getgenv().autoKillNinja then
-            task.spawn(function()
-                while getgenv().autoKillNinja do
-                    task.wait(0.15)
+        task.spawn(function()
+            while getgenv().autoKillNinja do
+                task.wait(0.15)
+                if getgenv().autoBoss and #getAliveSelectedBosses() > 0 then
+                    task.wait(0.3)
+                else
                     local hrp = char and char:FindFirstChild("HumanoidRootPart")
                     if hrp then
                         local target = findNearestNPC(hrp)
-                        if target then attackNPC(target) else task.wait(0.5) end
-                    else task.wait(0.5) end
+                        if target then attackNPC(target) end
+                    end
                 end
-            end)
-        end
+            end
+        end)
     end,
 })
 
--- Auto Collect Scrolls
-Main:CreateToggle({
-    Name = "Auto Collect Scrolls",
-    CurrentValue = false,
-    Callback = function(Value)
-        getgenv().autoScrolls = Value
-        if getgenv().autoScrolls then
-            task.spawn(function()
-                while getgenv().autoScrolls do
-                    task.wait(1)
-                    collectScrolls()
-                end
-            end)
-        end
-    end,
-})
-
--- Dropdown Boss
-Main:CreateDropdown({
-   Name = "Select Boss",
-   Options = {"None","Kaguyai","Nadara","Coldjason","Juubito","Oroshimaro","Mizouki","Pain"},
-   CurrentOption = "None",
-   MultipleOptions = false,
-   Flag = "SelectBoss",
-   Callback = function(Options)
-      if type(Options) == "table" then getgenv().currentBoss = Options[1] else getgenv().currentBoss = Options end
-   end,
-})
-
--- Auto Kill Boss
 Main:CreateToggle({
     Name = "Auto kill Boss",
     CurrentValue = false,
     Callback = function(Value)
         getgenv().autoBoss = Value
-        if getgenv().autoBoss then
-            task.spawn(function()
-                while getgenv().autoBoss do
-                    task.wait(0.2)
-                    if getgenv().currentBoss ~= "None" then
-                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                        if hrp then
-                            local bossTarget = nil
-                            for _, obj in ipairs(Workspace:GetChildren()) do
-                                if obj:IsA("Model") and obj.Name == getgenv().currentBoss then
-                                    local bHum = obj:FindFirstChildOfClass("Humanoid")
-                                    if bHum and bHum.Health > 0 then bossTarget = obj break end
-                                end
-                            end
-
-                            if bossTarget then
-                                attackNPC(bossTarget)
-                            else
-                                task.wait(1)
-                            end
-                        else
-                            task.wait(0.5)
-                        end
-                    else
-                        task.wait(0.5)
-                    end
-                end
-            end)
-        end
+        task.spawn(function()
+            while getgenv().autoBoss do
+                task.wait(0.2)
+                local bosses = getAliveSelectedBosses()
+                if #bosses > 0 then attackNPC(bosses[1]) end
+            end
+        end)
     end,
 })
 
--- Auto collect cash Tycoon
+Main:CreateToggle({
+    Name = "Auto Collect Scrolls",
+    CurrentValue = false,
+    Callback = function(Value)
+        getgenv().autoScrolls = Value
+        task.spawn(function()
+            while getgenv().autoScrolls do task.wait(1) collectScrolls() end
+        end)
+    end,
+})
+
 Main:CreateToggle({
    Name = "Auto collect Cash from Tycoon",
    CurrentValue = false,
    Callback = function(Value)
         getgenv().autoCollectCash = Value
         task.spawn(function()
-            while getgenv().autoCollectCash do task.wait(1)
+            while getgenv().autoCollectCash do
+                task.wait(1)
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if not hrp then task.wait(0.5) else
+                if hrp then
                     local kit = Workspace:FindFirstChild("Zednov's Tycoon Kit")
-                    if kit then
+                    if kit and kit:FindFirstChild("Tycoons") then
                         for _, base in pairs(kit.Tycoons:GetChildren()) do
-                            if base.Owner and base.Owner.Value == plr and base.Essentials and base.Essentials:FindFirstChild("Giver") then
+                            if base:FindFirstChild("Owner") and base.Owner.Value == plr and base.Essentials:FindFirstChild("Giver") then
                                 pcall(function()
                                     firetouchinterest(hrp, base.Essentials.Giver, 0)
-                                    task.wait()
+                                    task.wait(0.05)
                                     firetouchinterest(hrp, base.Essentials.Giver, 1)
                                 end)
                             end
                         end
-                    else task.wait(0.5) end
+                    end
                 end
             end
         end)
@@ -438,4 +442,29 @@ local ButtonBuyAllItems = Shop:CreateButton({
 			end
 		end
 	end,
+})
+
+local ToggleAutoLavaReleaseRyo = RyoShop:CreateToggle({
+Name = "Auto Activate Lava Release Ryo",
+CurrentValue = false,
+Callback = function(Value)
+if Value then
+local args = {
+	game:GetService("Players"):WaitForChild("DN_Blox50")
+}
+game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("RyoShop"):WaitForChild("Frame"):WaitForChild("Buttons"):WaitForChild("Lava"):WaitForChild("Event"):FireServer(unpack(args))
+end
+getgenv().autoLavaRelease = Value
+
+while getgenv().autoLavaRelease do task.wait(0.3)
+if hum.Health <= 0 then
+print(hum.Health)
+task.wait(3)
+local args = {
+	game:GetService("Players"):WaitForChild("DN_Blox50")
+}
+game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("RyoShop"):WaitForChild("Frame"):WaitForChild("Buttons"):WaitForChild("Lava"):WaitForChild("Event"):FireServer(unpack(args))
+end
+end
+end
 })
