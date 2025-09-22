@@ -202,12 +202,18 @@ local function attackNPC(npc)
     if not npc or not char or not hum then return end
     local npcHum, npcHrp = npc:FindFirstChildOfClass("Humanoid"), npc:FindFirstChild("HumanoidRootPart")
     if not npcHum or not npcHrp then return end
-
+    
+    pcall(function()
+    if npcHrp.TouchInterest then
+    npcHrp.TouchInterest:Destroy()
+    else
+    return end
+    end)
     while npcHum.Parent and npcHum.Health > 0 and hum.Health > 0 and (getgenv().autoKillNinja or getgenv().autoBoss) do
         if getgenv().autoScrolls then collectScrolls() end
 
         local root = char and char:FindFirstChild("HumanoidRootPart")
-        if root then root.CFrame = npcHrp.CFrame * CFrame.new(0, 0, 5) end
+        if root then root.CFrame = npcHrp.CFrame * CFrame.new(0, 0, 0.3) end
 
         local toolObj = (char and char:FindFirstChild(originalTool)) or plr.Backpack:FindFirstChild(originalTool)
         if toolObj and toolObj.Parent ~= char then pcall(function() toolObj.Parent = char end) task.wait(0.06) end
