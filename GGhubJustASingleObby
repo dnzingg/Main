@@ -1,0 +1,361 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed
+local defaultJumpHeight = plr.Character.Humanoid.JumpHeight
+local defaultJumpPower = plr.Character.Humanoid.JumpPower
+local TS = game:GetService("TweenService")
+
+local char, hum
+local function updateCharacter(c)
+char = c or plr.Character or plr.CharacterAdded:Wait()
+hum = char:WaitForChild("Humanoid")
+end
+
+if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
+plr.CharacterAdded:Connect(updateCharacter)
+
+getgenv().SendNotification = function(title, content, duration, image)
+if Rayfield then
+        Rayfield:Notify({
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
+end
+end
+
+getgenv().currentCheckpoint = nil
+getgenv().currentNPC = nil
+getgenv().currentItem = nil
+
+local Window = Rayfield:CreateWindow({
+Name = "GG hub - Just a single Obby",
+Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+LoadingTitle = "Loading...",
+LoadingSubtitle = "by DNzinGG",
+ShowText = "GG hub", -- for mobile users to unhide rayfield, change if you'd like
+Theme = "Ocean", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+DisableRayfieldPrompts = false,
+DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+ConfigurationSaving = {
+Enabled = false,
+FolderName = "GG_hub", -- Create a custom folder for your hub/game
+FileName = "GG hub - Just a single Obby"
+},
+
+Discord = {
+Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+}})
+
+local Main = Window:CreateTab("Main", 124620632231839)
+local Teleports = Window:CreateTab("Teleports", 6723742952)
+local Others = Window:CreateTab("Others", 12122755689)
+
+-- Functions
+
+local SliderWalkSpeed = Others:CreateSlider({
+Name = "Change WalkSpeed",
+Range = {0, 1000},
+Increment = 1,
+Suffix = "Speed",
+CurrentValue = plr.Character:WaitForChild("Humanoid").WalkSpeed,
+Flag = "SliderWalkSpeed",
+Callback = function(Value)
+plr.Character.Humanoid.WalkSpeed = Value
+end,
+})
+
+local SliderJumpPower = Others:CreateSlider({
+Name = "Change JumpPower",
+Range = {0, 500},
+Increment = 1,
+Suffix = "JumpPower",
+CurrentValue = plr.Character.Humanoid.JumpPower,
+Flag = "SliderJumpPower",
+Callback = function(Value)
+plr.Character.Humanoid.JumpPower = Value
+end,
+})
+
+local ButtonResetWalkSpeed = Others:CreateButton({
+Name = "Reset WalkSpeed",
+Callback = function()
+plr.Character.Humanoid.WalkSpeed = defaultWalkSpeed
+SliderWalkSpeed:Set(defaultWalkSpeed)
+end,
+})
+
+local ButtonResetJumpPower = Others:CreateButton({
+Name = "Reset JumpPower",
+Callback = function()
+plr.Character.Humanoid.JumpPower = defaultJumpPower
+SliderJumpPower:Set(defaultJumpPower)
+end,
+})
+
+local ToggleInfiniteJump = Others:CreateToggle({
+Name = "Infinite Jump",
+CurrentValue = false,
+Flag = "ToggleInfiniteJump",
+Callback = function(Value)
+if Value == true then
+local UserInputService = game:GetService("UserInputService")
+UserInputService.JumpRequest:Connect(function()
+if plr.Character:WaitForChild("Humanoid") then
+plr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+end
+end)
+elseif Value == false then
+for _, connection in pairs(getconnections(game:GetService("UserInputService").JumpRequest)) do
+connection:Disconnect()
+end
+end
+end,
+})
+
+local ButtonGetTPTool = Others:CreateButton({
+Name = "Get TP Tool",
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local Backpack = player:WaitForChild("Backpack")
+
+if Backpack:FindFirstChild("TPTool") then
+Backpack.TPTool:Destroy()
+end
+
+local tool = Instance.new("Tool")
+tool.Name = "TPTool"
+tool.RequiresHandle = false
+tool.CanBeDropped = false
+tool.Parent = Backpack
+
+local soundId = "rbxassetid://9118823109"
+
+tool.Activated:Connect(function()
+local mouse = player:GetMouse()
+local character = player.Character
+if not character then return end
+local root = character:FindFirstChild("HumanoidRootPart")
+if not root then return end
+
+local targetPos = mouse.Hit.p + Vector3.new(0, 3, 0)  
+
+local sound = Instance.new("Sound")  
+sound.SoundId = soundId  
+sound.Volume = 1  
+sound.Parent = root  
+sound:Play()  
+game.Debris:AddItem(sound, 2)  
+
+root.CFrame = CFrame.new(targetPos)
+
+end)
+end,
+})
+
+local ButtonForceReset = Others:CreateButton({
+Name = "Force Reset",
+Callback = function()
+plr.Character.Humanoid.Health = 0
+end,
+})
+
+local ButtonFlyGui = Others:CreateButton({
+Name = "Fly Gui",
+Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+end,
+})
+
+-- AUTO BLUXCOINS  
+local ToggleAutoBluxCoins = Main:CreateToggle({  
+	Name = "Auto BluxCoins",  
+	CurrentValue = false,  
+	Flag = "ToggleAutoBluxCoins",  
+	Callback = function(Value)  
+	if Value then  
+	getgenv().autoBluxCoins = true
+
+local hrp = char:FindFirstChild("HumanoidRootPart")
+
+while getgenv().autoBluxCoins do task.wait(0.00001)
+if getgenv().autoBluxCoins then
+for _,coins in pairs(workspace.Game.bluxCoins:GetChildren()) do
+if coins.Name == "bluxCoin" and coins:IsA("MeshPart") then
+if coins.Transparency ~= 1 then
+hrp.CFrame = coins.CFrame
+elseif coins.Transparency == 1 then
+break
+end
+else
+hrp.CFrame = CFrame.new(1, 2, -41)
+end
+end
+end
+end
+else
+getgenv().autoBluxCoins = false
+end
+end,
+})
+
+local function GetCheckpoint()
+local checkpoints = {}
+for _, v in ipairs(game.Workspace.Game.Checkpoints:GetChildren()) do
+if v:IsA("SpawnLocation") then table.insert(checkpoints, v.Name) end
+end
+if #checkpoints == 0 then table.insert(checkpoints, nil) end
+return checkpoints
+end
+
+-- TELEPORT TO CHECKPOINTS
+local DropdownSelectCheckpoint = Teleports:CreateDropdown({
+Name = "Select Checkpoint",
+Options = GetCheckpoint(),
+CurrentOption = nil,
+Flag = "DropdownSelectCheckpoint",
+MultipleOptions = false,
+Callback = function(Option)
+if type(Option) == "table" then Option = Option[1] end
+getgenv().currentCheckpoint = Option or nil
+end,
+})
+
+local ButtonTeleportCheckpoint = Teleports:CreateButton({
+Name = "Teleport to Checkpoint",
+Callback = function()
+if getgenv().currentCheckpoint ~= nil then
+for _,v in pairs(game.Workspace.Game.Checkpoints:GetChildren()) do
+if v:IsA("SpawnLocation") and v.Name == getgenv().currentCheckpoint then
+char.HumanoidRootPart.CFrame = v.CFrame + Vector3.new(0, 5.5, 0)
+end
+end
+end
+end,
+})
+
+-- TELEPORT NPCS
+local function GetNPCs()
+local npcs = {}
+for _, v in ipairs(game.Workspace.Game.NPCs:GetChildren()) do
+if v:IsA("Model") then table.insert(npcs, v.Name) end
+end
+if #npcs == 0 then table.insert(npcs, nil) end
+return npcs
+end
+
+local DropdownSelectNPC = Teleports:CreateDropdown({
+Name = "Select NPC",
+Options = GetNPCs(),
+CurrentOption = nil,
+Flag = "DropdownSelectNPC",
+MultipleOptions = false,
+Callback = function(Option)
+if type(Option) == "table" then Option = Option[1] end
+getgenv().currentNPC = Option or nil
+end,
+})
+
+local ButtonTeleportNPC = Teleports:CreateButton({
+Name = "Teleport to NPC",
+Callback = function()
+if getgenv().currentNPC ~= nil then
+for _,v in pairs(game.Workspace.Game.NPCs:GetDescendants()) do
+if v:IsA("Model") and getgenv().currentNPC == "Sr. Zé" then
+char.HumanoidRootPart.CFrame = workspace.Game.NPCs["Sr. Z\195\169"][""].Torso.CFrame + Vector3.new(0, 0, 3.3)
+elseif v:IsA("Model") and v.Name == getgenv().currentNPC then
+char.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame + Vector3.new(0, 0, -3)
+end
+end
+end
+end,
+})
+
+-- AUTO BUY ITEMS
+
+local DropdownSelectItem = Main:CreateDropdown({
+    Name = "Select Item",
+    Options = {"Bloxy Cola", "Classic Sword", "Hook", "Gravity Coil", "Player Knife", "Speed Coil", "Magic Clover"},
+    MultipleOptions = true,
+    CurrentOption = nil,
+    Flag = "DropdownSelectItem",
+    Callback = function(Options)
+        if type(Options) ~= "table" then
+            Options = {Options}
+        end
+        getgenv().currentItem = Options
+    end,
+})
+
+local ButtonBuyItem = Main:CreateButton({
+    Name = "Buy Item",
+    Callback = function()
+        if getgenv().currentItem and #getgenv().currentItem > 0 then
+            for _, item in ipairs(getgenv().currentItem) do
+                local bought = false
+                local coins = plr.leaderstats.BluxCoins
+
+                if item == "Bloxy Cola" and coins.Value >= 150 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.BloxyColaEvent:FireServer()
+                    bought = true
+                    elseif item == "Bloxy Cola" and coins.Value <= 150 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 150 BluxCoins.", 3)
+                    end
+                if item == "Classic Sword" and coins.Value >= 30 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.ClassicSwordEvent:FireServer()
+                    bought = true
+                    elseif item == "Classic Sword" and coins.Value <= 30 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 30 BluxCoins.", 3)
+                    end
+                if item == "Hook" and coins.Value >= 100 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.HookEvent:FireServer()
+                    bought = true
+                    elseif item == "Hook" and coins.Value <= 100 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 100 BluxCoins.", 3)
+                    end
+                if item == "Gravity Coil" and coins.Value >= 50 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.GravityCoilEvent:FireServer()
+                    bought = true
+                    elseif item == "Gravity Coil" and coins.Value <= 50 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 50 BluxCoins.", 3)
+                    end
+                if item == "Player Knife" and coins.Value >= 50 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.PlayerKnifeEvent:FireServer()
+                    bought = true
+                    elseif item == "Player Knife" and coins.Value <= 50 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 50 BluxCoins.", 3)
+                    end
+                if item == "Speed Coil" and coins.Value >= 60 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.SpeedCoilEvent:FireServer()
+                    bought = true
+                    elseif item == "Speed Coil" and coins.Value <= 60 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 60 BluxCoins.", 3)
+                    end
+                if item == "Magic Clover" and coins.Value >= 40 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.MagicCloverEvent:FireServer()
+                    bought = true
+                    elseif item == "Magic Clover" and coins.Value <= 40 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 40 BluxCoins.", 3)
+                end
+
+                if bought then
+                    SendNotification("GG Hub", "Item purchased: " .. item, 5)
+                else
+                    SendNotification("GG Hub", "Failed to purchase: " .. item, 5)
+                end
+            end
+        else
+            SendNotification("GG Hub", "No items selected!", 5)
+        end
+    end,
+})
