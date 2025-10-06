@@ -45,7 +45,7 @@ DisableRayfieldPrompts = false,
 DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
 
 ConfigurationSaving = {
-Enabled = false,
+Enabled = true,
 FolderName = "GG_hub", -- Create a custom folder for your hub/game
 FileName = "GG hub - Just a single Obby"
 },
@@ -82,6 +82,7 @@ Suffix = "JumpPower",
 CurrentValue = plr.Character.Humanoid.JumpPower,
 Flag = "SliderJumpPower",
 Callback = function(Value)
+plr.Character.Humanoid.UseJumpPower = true
 plr.Character.Humanoid.JumpPower = Value
 end,
 })
@@ -271,10 +272,8 @@ Name = "Teleport to NPC",
 Callback = function()
 if getgenv().currentNPC ~= nil then
 for _,v in pairs(game.Workspace.Game.NPCs:GetDescendants()) do
-if v:IsA("Model") and getgenv().currentNPC == "Sr. Zé" then
-char.HumanoidRootPart.CFrame = workspace.Game.NPCs["Sr. Z\195\169"][""].Torso.CFrame + Vector3.new(0, 0, 3.3)
-elseif v:IsA("Model") and v.Name == getgenv().currentNPC then
-char.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame + Vector3.new(0, 0, -3)
+if v:IsA("Model") and v.Name == getgenv().currentNPC then
+char.HumanoidRootPart.CFrame = v:FindFirstChildOfClass("Part").CFrame + Vector3.new(0, 0, -3)
 end
 end
 end
@@ -285,7 +284,7 @@ end,
 
 local DropdownSelectItem = Main:CreateDropdown({
     Name = "Select Item",
-    Options = {"Bloxy Cola", "Classic Sword", "Hook", "Gravity Coil", "Player Knife", "Speed Coil", "Magic Clover"},
+    Options = {"Bloxy Cola", "Classic Sword", "Hook", "Gravity Coil", "Player Knife", "Speed Coil", "Magic Clover","Double Coil", "Dash Boots"},
     MultipleOptions = true,
     CurrentOption = nil,
     Flag = "DropdownSelectItem",
@@ -324,6 +323,99 @@ local ButtonBuyItem = Main:CreateButton({
                     SendNotification("GG hub", "Purchase failed: You don't have 100 BluxCoins.", 3)
                     end
                 if item == "Gravity Coil" and coins.Value >= 50 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.GravityCoilEvent:FireServer()
+                    bought = true
+                    elseif item == "Gravity Coil" and coins.Value <= 50 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 50 BluxCoins.", 3)
+                    end
+                if item == "Player Knife" and coins.Value >= 50 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.PlayerKnifeEvent:FireServer()
+                    bought = true
+                    elseif item == "Player Knife" and coins.Value <= 50 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 50 BluxCoins.", 3)
+                    end
+                if item == "Speed Coil" and coins.Value >= 60 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.SpeedCoilEvent:FireServer()
+                    bought = true
+                    elseif item == "Speed Coil" and coins.Value <= 60 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 60 BluxCoins.", 3)
+                    end
+                if item == "Magic Clover" and coins.Value >= 40 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.MagicCloverEvent:FireServer()
+                    bought = true
+                    elseif item == "Magic Clover" and coins.Value <= 40 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 40 BluxCoins.", 3)
+                end
+                if item == "Double Coil" and coins.Value >= 75 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.DoubleCoilEvent:FireServer()
+                    bought = true
+                    elseif item == "Double Coil" and coins.Value <= 75 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 75 BluxCoins.", 3)
+                end
+                if item == "Dash Boots" and coins.Value >= 25 then
+                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.DashBootsEvent:FireServer()
+                    bought = true
+                    elseif item == "Dash Boots" and coins.Value <= 25 then
+                    SendNotification("GG hub", "Purchase failed: You don't have 25 BluxCoins.", 3)
+                end
+
+                if bought then
+                    SendNotification("GG Hub", "Item purchased: " .. item, 5)
+                else
+                    SendNotification("GG Hub", "Failed to purchase: " .. item, 5)
+                end
+            end
+        else
+            SendNotification("GG Hub", "No items selected!", 5)
+        end
+    end,
+})
+
+local ToggleAutoDrinkBloxyCola = Main:CreateToggle({
+	Name = "Auto Drink Bloxy Cola",
+	CurrentValue = false,
+	Flag = "ToggleAutoDrinkBloxyCola",
+	Callback = function(Value)
+	getgenv().AutoBloxyCola = Value
+	if Value then
+local tool = plr.Backpack:FindFirstChild("BloxyCola") or char:FindFirstChild("BloxyCola")
+
+local function Event()
+local args = {
+	30,
+	20
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents"):WaitForChild("GameEvents"):WaitForChild("GetBloxyColaShield"):FireServer(unpack(args))
+end
+
+local function Drink()
+if AutoBloxyCola then
+if tool then
+if tool.Parent == plr.Backpack then
+tool.Parent = char
+Event()
+Event()
+task.wait(4)
+tool.Parent = plr.Backpack
+elseif tool.Parent == char then
+Event()
+Event()
+task.wait(4)
+tool.Parent = plr.Backpack
+end
+elseif not tool then
+SendNotification("GG Hub", "You don't have a Bloxy Cola!", 3)
+end
+end
+end
+
+Drink()
+while AutoBloxyCola do task.wait(20.1)
+Drink()
+end
+end
+	end,
+})l" and coins.Value >= 50 then
                     game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.GravityCoilEvent:FireServer()
                     bought = true
                     elseif item == "Gravity Coil" and coins.Value <= 50 then
