@@ -415,39 +415,4 @@ Drink()
 end
 end
 	end,
-})l" and coins.Value >= 50 then
-                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.GravityCoilEvent:FireServer()
-                    bought = true
-                    elseif item == "Gravity Coil" and coins.Value <= 50 then
-                    SendNotification("GG hub", "Purchase failed: You don't have 50 BluxCoins.", 3)
-                    end
-                if item == "Player Knife" and coins.Value >= 50 then
-                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.PlayerKnifeEvent:FireServer()
-                    bought = true
-                    elseif item == "Player Knife" and coins.Value <= 50 then
-                    SendNotification("GG hub", "Purchase failed: You don't have 50 BluxCoins.", 3)
-                    end
-                if item == "Speed Coil" and coins.Value >= 60 then
-                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.SpeedCoilEvent:FireServer()
-                    bought = true
-                    elseif item == "Speed Coil" and coins.Value <= 60 then
-                    SendNotification("GG hub", "Purchase failed: You don't have 60 BluxCoins.", 3)
-                    end
-                if item == "Magic Clover" and coins.Value >= 40 then
-                    game:GetService("ReplicatedStorage").RemoteEvents.ToolEvents.MagicCloverEvent:FireServer()
-                    bought = true
-                    elseif item == "Magic Clover" and coins.Value <= 40 then
-                    SendNotification("GG hub", "Purchase failed: You don't have 40 BluxCoins.", 3)
-                end
-
-                if bought then
-                    SendNotification("GG Hub", "Item purchased: " .. item, 5)
-                else
-                    SendNotification("GG Hub", "Failed to purchase: " .. item, 5)
-                end
-            end
-        else
-            SendNotification("GG Hub", "No items selected!", 5)
-        end
-    end,
 })
