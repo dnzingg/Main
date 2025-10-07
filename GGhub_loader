@@ -1,17 +1,39 @@
-local games = {
--- Prison Life
-    [155615604] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubPrisonLife", 
--- Ninja Tycoon
+local GameScripts = {
+    -- Prison Life
+    [155615604] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubPrisonLife",
+    -- Ninja Tycoon
     [221718525] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubNinjaTycoon",
--- Just A Single Obby
-[94618981088971] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubJustASingleObby"
+    -- Just A Single Obby
+    [94618981088971] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubJustASingleObby"
 }
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
 local placeId = game.PlaceId
-local scriptUrl = games[placeId]
+local scriptUrl = GameScripts[placeId]
+
+local function SafeLoad(url)
+    local success, response = pcall(function()
+        return game:HttpGet(url)
+    end)
+
+    if success and response and response ~= "" then
+        local loadSuccess, err = pcall(function()
+            loadstring(response)()
+        end)
+
+        if not loadSuccess then
+            warn("[GGHub] Erro ao executar o script:", err)
+            LocalPlayer:Kick("Erro ao carregar script do GGHub! (" .. tostring(err) .. ")")
+        end
+    else
+        warn("[GGHub] Falha ao baixar script de:", url)
+        LocalPlayer:Kick("Falha ao obter script remoto!")
+    end
+end
 
 if scriptUrl then
-    loadstring(game:HttpGet(scriptUrl))()
+    SafeLoad(scriptUrl)
 else
-    game.Players.LocalPlayer:Kick("Game not supported!")
+    LocalPlayer:Kick("Jogo não suportado pelo GGHub!")
 end
