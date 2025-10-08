@@ -4,7 +4,9 @@ local GameScripts = {
     -- Ninja Tycoon
     [221718525] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubNinjaTycoon",
     -- Just A Single Obby
-    [94618981088971] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubJustASingleObby"
+    [94618981088971] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhubJustASingleObby",
+-- oMega Obby
+[800308467] = "https://raw.githubusercontent.com/dnzingg/Main/refs/heads/main/GGhub_OMegaObby"
 }
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
