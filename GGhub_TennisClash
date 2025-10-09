@@ -193,7 +193,7 @@ local ToggleAutoPerfectWithdraw = Main:CreateToggle({
 	getgenv().AutoPerfect = Value
 	
 	if getgenv().AutoPerfect then
-	SendNotification("GG hub", "This function may not work properly.", 3)
+	SendNotification("GG hub", "This function may not work properly.", 2)
 	end
 	
 	while AutoPerfect do task.wait(0.1)
@@ -201,7 +201,7 @@ local ToggleAutoPerfectWithdraw = Main:CreateToggle({
 	{
 		CamPos = vector.create(12601.3662109375, 34.332061767578125, -2902.32275390625),
 		HitPos = vector.create(12594.626953125, 25.425382614135742, -2939.28076171875),
-		HitBallType = 2,
+		HitBallType = 7,
 		ClientTick = 1759960758.501703,
 		CamDir = vector.create(-0.2098981887102127, -0.3811514973640442, -0.900370180606842),
 		ExtendParams = {
