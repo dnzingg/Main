@@ -20,6 +20,7 @@ plr.CharacterAdded:Connect(updateCharacter)
 local defaultWalkSpeed = 28
 local defaultJumpPower = 52
 getgenv().currentArena = nil
+getgenv(). currentPracticeArena = nil
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -145,8 +146,7 @@ local ToggleAutoThrow = Main:CreateToggle({
 	Flag = "ToggleAutoThrow",
 	Callback = function(Value)
 	getgenv().autoThrow = Value
-	
-	while getgenv().autoThrow do task.wait(0.1)
+	while getgenv().autoThrow do task.wait(0.25)
 	local args = {
 	{
 		CamPos = vector.create(9183.220703125, 21.282329559326172, -2934.73583984375),
@@ -162,10 +162,12 @@ end
 	end,
 })
 
-local DropdownSelectCourt = Teleports:CreateDropdown({
+local DropdownSelectArena = Teleports:CreateDropdown({
 	Name = "Select Arena",
-	Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arenas"},
+	Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arena6"},
 	CurrentOption = nil,
+	Flag = "DropdownSelectArena",
+	MultipleOptions = false,
 	Callback = function(Option)
 	        if type(Option) == "table" then Option = Option[1] end
         getgenv().currentArena = Option or nil
@@ -174,13 +176,26 @@ local DropdownSelectCourt = Teleports:CreateDropdown({
 
 local ButtonTeleportToCourt = Teleports:CreateButton({
 	Name = "Teleport to Arena",
-	Callback = function()
-	SendNotification("GG hub", "In Development...", 3)
-	
+	Callback = function()	
 	if getgenv().currentArena ~= nil then
-	print("a")
-	else
-	print("b")
+	if currentArena == "Arena1" then
+	hrp.CFrame = CFrame.new(3074.736083984375, 7.560999870300293, -2997.7958984375)
+	end
+	if currentArena == "Arena2" then
+	hrp.CFrame = CFrame.new(77.73600006103516, 7.586999893188477, -2997.794921875)
+	end
+	if currentArena == "Arena3" then
+	hrp.CFrame = CFrame.new(-4545.59521484375, 7.586999893188477, -2997.794921875)
+	end
+	if currentArena == "Arena4" then
+	hrp.CFrame = CFrame.new(9167.5322265625, 7.586999893188477, -2997.794921875)
+	end
+	if currentArena == "Arena5" then
+	hrp.CFrame = CFrame.new(12580.611328125, 7.586999893188477, -2997.797119140625)
+	end
+	if currentArena == "Arena6" then
+	hrp.CFrame = CFrame.new(17922.833984375, 7.586999893188477, -2997.794921875)
+	end
 	end
 	end,
 })
@@ -193,19 +208,19 @@ local ToggleAutoPerfectWithdraw = Main:CreateToggle({
 	getgenv().AutoPerfect = Value
 	
 	if getgenv().AutoPerfect then
-	SendNotification("GG hub", "This function may not work properly.", 2)
+	SendNotification("GG hub", "This feature is in BETA so it may not work properly!", 1.5)
 	end
 	
-	while AutoPerfect do task.wait(0.1)
+	while AutoPerfect do task.wait(0.25)
 	local args = {
 	{
-		CamPos = vector.create(12601.3662109375, 34.332061767578125, -2902.32275390625),
-		HitPos = vector.create(12594.626953125, 25.425382614135742, -2939.28076171875),
+		CamPos = hrp.CFrame.LookVector * vector.create(12601.3662109375, 34.332061767578125, -2902.32275390625),
+		HitPos = hrp.CFrame.LookVector * 30.29393,
 		HitBallType = 7,
 		ClientTick = 1759960758.501703,
 		CamDir = vector.create(-0.2098981887102127, -0.3811514973640442, -0.900370180606842),
 		ExtendParams = {
-			RotateType = -1,
+			RotateType = 1,
 			Power = 91.21489228631319
 		},
 		AttackMoveSpeed = vector.zero
@@ -222,7 +237,7 @@ CurrentValue = false,
 Flag = "ToggleAutoWithdraw",
 Callback = function(Value)
 getgenv().autoWithdraw = Value
-while autoWithdraw do task.wait(0.01)
+while autoWithdraw do task.wait(0.1)
 local args = {
 	{
 		RotateType = -1,
@@ -232,4 +247,23 @@ local args = {
 game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ServeRF"):InvokeServer(unpack(args))
 end
 end,
+})
+
+local DropdownSelectPracticeArena = Teleports:CreateDropdown({
+	Name = "Select Practice Arena",
+	Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arena6"},
+	CurrentOption = nil,
+	Flag = "DropdownSelectPracticeArena",
+	MultipleOptions = false,
+	Callback = function(Option)
+	        if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentPracticeArena = Option or nil
+	end,
+})
+
+local ButtonTeleportToPracticeArena = Teleports:CreateButton({
+	Name = "Teleport To Practice Arena",
+	Callback = function()
+	SendNotification("GG hub", "In Development...", 2)
+	end,
 })
