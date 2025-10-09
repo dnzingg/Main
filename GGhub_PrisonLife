@@ -1,6 +1,3 @@
--- Improved and fixed Luau script for "GG hub - Prison Life"
--- (No extra comments per your request; kept minimal and robust)
-
 local success, Rayfield = pcall(function()
 	return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 end)
@@ -17,7 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 
 -- Character/humanoid state management
 local character, humanoid, hrp
-local defaultWalkSpeed = 16
+local defaultWalkSpeed = 24
 local defaultJumpPower =  50
 
 local function updateCharacterReferences(char)
@@ -61,7 +58,7 @@ local Window = Rayfield:CreateWindow({
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false,
    ConfigurationSaving = {
-      Enabled = false,
+      Enabled = true,
       FolderName = "GG_hub",
       FileName = "GG hub - Prison Life"
    },
@@ -113,10 +110,15 @@ local function GetRemington()
 Main:CreateButton({
 	Name = "Become a Inmate",
 	Callback = function()
-		local remote = safeGet({"Remote"}, workspace)
-		if remote and remote:FindFirstChild("TeamEvent") then
-			pcall(function() remote.TeamEvent:FireServer("Bright orange") end)
-		end
+	local args = {
+	game:GetService("Teams"):WaitForChild("Neutral")
+}
+workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
+task.wait()
+local args = {
+	game:GetService("Teams"):WaitForChild("Inmates")
+}
+workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
 	end,
 })
 
@@ -126,7 +128,7 @@ local SliderWalkSpeed = Others:CreateSlider({
    Range = {0, 1000},
    Increment = 1,
    Suffix = "Speed",
-   CurrentValue = (humanoid and humanoid.WalkSpeed) or defaultWalkSpeed,
+   CurrentValue = humanoid.WalkSpeed or defaultWalkSpeed,
    Flag = "SliderWalkSpeed",
    Callback = function(Value)
 		if humanoid then
@@ -143,7 +145,7 @@ local SliderJumpPower = Others:CreateSlider({
    Range = {0, 500},
    Increment = 1,
    Suffix = "JumpPower",
-   CurrentValue = (humanoid and humanoid.JumpPower) or defaultJumpPower,
+   CurrentValue = humanoid.JumpPower or defaultJumpPower,
    Flag = "SliderJumpPower",
    Callback = function(Value)
 		if humanoid then
@@ -279,10 +281,15 @@ Main:CreateButton({
 Main:CreateButton({
    Name = "Become a Guard",
     Callback = function()
-		local remote = safeGet({"Remote"}, workspace)
-		if remote and remote:FindFirstChild("TeamEvent") then
-			pcall(function() remote.TeamEvent:FireServer("Bright blue") end)
-		end
+    local args = {
+	game:GetService("Teams"):WaitForChild("Neutral")
+}
+workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
+task.wait()
+		local args = {
+	game:GetService("Teams"):WaitForChild("Guards")
+}
+workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
     end,
 })
 
