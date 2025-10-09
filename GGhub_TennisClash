@@ -17,8 +17,9 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 28
-local defaultJumpPower = plr.Character.Humanoid.JumpPower or 52.856998443603516
+local defaultWalkSpeed = 28
+local defaultJumpPower = 52
+getgenv().currentArena = nil
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -145,17 +146,67 @@ local ToggleAutoThrow = Main:CreateToggle({
 	Callback = function(Value)
 	getgenv().autoThrow = Value
 	
-	while getgenv().autoThrow do task.wait(0.0001)
+	while getgenv().autoThrow do task.wait(0.1)
 	local args = {
 	{
-		CamPos = vector.create(101.1533432006836, 36.78386688232422, -2903.127685546875),
-		HitPos = vector.create(91.74346160888672, 25.5885009765625, -2939.281005859375),
-		HitBallType = 7,
-		ClientTick = 1759886754.423109,
-		CamDir = vector.create(-0.276524156332016, -0.385608047246933, -0.8802504539489746),
+		CamPos = vector.create(9183.220703125, 21.282329559326172, -2934.73583984375),
+		HitPos = vector.create(9165.1484375, 13.781553268432617, -2986.181396484375),
+		HitBallType = 1,
+		ClientTick = 1759944855.056984,
+		CamDir = vector.create(-0.42616772651672363, -0.2256360799074173, -0.8760533332824707),
+		AttackMoveSpeed = vector.create(-1.292837142944336, 0, -34.34698486328125)
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("HitBallRF"):InvokeServer(unpack(args))
+end
+	end,
+})
+
+local DropdownSelectCourt = Teleports:CreateDropdown({
+	Name = "Select Arena",
+	Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arenas"},
+	CurrentOption = nil,
+	Callback = function(Option)
+	        if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentArena = Option or nil
+	end,
+})
+
+local ButtonTeleportToCourt = Teleports:CreateButton({
+	Name = "Teleport to Arena",
+	Callback = function()
+	SendNotification("GG hub", "In Development...", 3)
+	
+	if getgenv().currentArena ~= nil then
+	print("a")
+	else
+	print("b")
+	end
+	end,
+})
+
+local ToggleAutoPerfectWithdraw = Main:CreateToggle({
+	Name = "Auto Perfect Throw(BETA)",
+	CurrentValue = false,
+	Flag = "ToggleAutoPerfectThrow",
+	Callback = function(Value)
+	getgenv().AutoPerfect = Value
+	
+	if getgenv().AutoPerfect then
+	SendNotification("GG hub", "This function may not work properly.", 3)
+	end
+	
+	while AutoPerfect do task.wait(0.1)
+	local args = {
+	{
+		CamPos = vector.create(12601.3662109375, 34.332061767578125, -2902.32275390625),
+		HitPos = vector.create(12594.626953125, 25.425382614135742, -2939.28076171875),
+		HitBallType = 2,
+		ClientTick = 1759960758.501703,
+		CamDir = vector.create(-0.2098981887102127, -0.3811514973640442, -0.900370180606842),
 		ExtendParams = {
-			RotateType = 3,
-			Power = 94.02669243029837
+			RotateType = -1,
+			Power = 91.21489228631319
 		},
 		AttackMoveSpeed = vector.zero
 	}
@@ -165,18 +216,20 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("HitBa
 	end,
 })
 
-local DropdownSelectCourt = Teleports:CreateDropdown({
-	Name = "Select Court",
-	Options = {""},
-	CurrentOption = nil,
-	Callback = function(Options)
-	
-	end,
-})
-
-local ButtonTeleportToCourt = Teleports:CreateButton({
-	Name = "Teleport to Court",
-	Callback = function()
-	SendNotification("GG hub", "In Development...", 3)
-	end,
+local ToggleAutoWithdraw = Main:CreateToggle({
+Name = "Auto Withdraw",
+CurrentValue = false,
+Flag = "ToggleAutoWithdraw",
+Callback = function(Value)
+getgenv().autoWithdraw = Value
+while autoWithdraw do task.wait(0.01)
+local args = {
+	{
+		RotateType = -1,
+		Power = 84.60108185511048
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ServeRF"):InvokeServer(unpack(args))
+end
+end,
 })
