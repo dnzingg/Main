@@ -7,10 +7,11 @@ local defaultJumpHeight = plr.Character.Humanoid.JumpHeight
 local defaultJumpPower = plr.Character.Humanoid.JumpPower
 local TS = game:GetService("TweenService")
 
-local char, hum
+local char, hum, hrp
 local function updateCharacter(c)
 char = c or plr.Character or plr.CharacterAdded:Wait()
 hum = char:WaitForChild("Humanoid")
+hrp = char:WaitForChild("HumanoidRootPart")
 end
 
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
@@ -186,8 +187,6 @@ local ToggleAutoBluxCoins = Main:CreateToggle({
 	Callback = function(Value)  
 	if Value then  
 	getgenv().autoBluxCoins = true
-
-local hrp = char:FindFirstChild("HumanoidRootPart")
 
 while getgenv().autoBluxCoins do task.wait(0.00001)
 if getgenv().autoBluxCoins then
