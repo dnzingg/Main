@@ -27,17 +27,17 @@ local function SafeLoad(url)
         end)
 
         if not loadSuccess then
-            warn("[GGHub] Erro ao executar o script:", err)
-            LocalPlayer:Kick("Erro ao carregar script do GGHub! (" .. tostring(err) .. ")")
+            warn("[GGHub] Error executing script:", err)
+            LocalPlayer:Kick("Error loading Script: (" .. tostring(err) .. ")")
         end
     else
-        warn("[GGHub] Falha ao baixar script de:", url)
-        LocalPlayer:Kick("Falha ao obter script remoto!")
+        warn("[GGHub] Failed to get URL from: ", url)
+        LocalPlayer:Kick("Failed to get URL: " .. url)
     end
 end
 
 if scriptUrl then
     SafeLoad(scriptUrl)
 else
-    LocalPlayer:Kick("Jogo não suportado pelo GGHub!")
+    LocalPlayer:Kick("Game not supported!")
 end
