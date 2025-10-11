@@ -49,14 +49,15 @@ plr.CharacterAdded:Connect(function(char)
 	end)
 end)
 
--- Create UI
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
 local Window = Rayfield:CreateWindow({
-   Name = "GG hub - Prison Life",
-   Icon = 0,
+   Name = "GG hub - " .. gameName,
+   Icon = 16570037140,
    LoadingTitle = "Loading...",
    LoadingSubtitle = "by DNzinGG",
    ShowText = "GG hub",
-   Theme = "Ocean",
+   Theme = "Amethyst",
    ToggleUIKeybind = "K",
    DisableRayfieldPrompts = true,
    DisableBuildWarnings = true,
@@ -388,10 +389,4 @@ Others:CreateButton({
 		end)
 	end,
 })
-
--- Ensure Slider references exist in scope for characterAdded update above
--- (Rayfield returns objects synchronously so these variables exist)
-
 return true
-
-Rayfield:LoadConfiguration()
