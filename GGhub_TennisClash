@@ -556,3 +556,5 @@ local ButtonDestroyGui = Others:CreateButton({
 	Rayfield:Destroy()
 	end,
 })
+
+Rayfield:LoadConfiguration()
