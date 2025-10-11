@@ -439,3 +439,10 @@ RyoShop:CreateToggle({
         end
     end,
 })
+
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
