@@ -34,6 +34,8 @@ local Window = Rayfield:CreateWindow({
     ShowText = "GG hub",
     Theme = "Ocean",
     ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
     ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - Ninja Tycoon" }
 })
 
@@ -435,3 +437,5 @@ RyoShop:CreateToggle({
         end
     end,
 })
+
+Rayfield:LoadConfiguration()
