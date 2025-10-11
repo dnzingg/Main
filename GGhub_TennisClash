@@ -1,324 +1,131 @@
-local success, Rayfield = pcall(function()
-	return loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-end)
-if not success then Rayfield = nil end
-
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local plr = Players.LocalPlayer
+local TS = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local Debris = game:GetService("Debris")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local plr = Players.LocalPlayer
 local char, hum, hrp
-
 local function updateCharacter(c)
-	char = c or plr.Character or plr.CharacterAdded:Wait()
-	hum = char:WaitForChild("Humanoid")
-	hrp = char:WaitForChild("HumanoidRootPart")
+    char = c or plr.Character or plr.CharacterAdded:Wait()
+    hum = char:WaitForChild("Humanoid")
+    hrp = char:WaitForChild("HumanoidRootPart")
 end
+
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-getgenv().currentJumpPower = 52
-local defaultWalkSpeed, defaultJumpPower = 28, 52
-getgenv().currentArena, getgenv().currentPracticeArena = nil, nil
-getgenv().autoThrow, getgenv().AutoPerfect, getgenv().NoClip = false, false, false
+local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
+local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
 
 getgenv().SendNotification = function(title, content, duration, image)
-	if Rayfield then
-		Rayfield:Notify({
-			Title = title or "GG hub",
-			Content = content or "",
-			Duration = duration or 3,
-			Image = image or 5107182098
-		})
-	else
-		pcall(function()
-			StarterGui:SetCore("SendNotification", {
-				Title = title or "GG hub",
-				Text = content or "",
-				Duration = duration or 3
-			})
-		end)
-	end
-end
-
-local Window
 if Rayfield then
-	Window = Rayfield:CreateWindow({
-		Name = "GG hub - Tennis Clash",
-		Icon = 16570037140,
-		LoadingTitle = "Loading...",
-		LoadingSubtitle = "by DNzinGG",
-		ShowText = "GG hub",
-		Theme = "Amethyst",
-		ToggleUIKeybind = "K",
-		ConfigurationSaving = {
-			Enabled = true,
-			FolderName = "GG_hub",
-			FileName = "GG hub - Tennis Clash"
-		}
-	})
-else
-	warn("Rayfield não carregado — UI desabilitada.")
+        Rayfield:Notify({
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
+end
 end
 
-local Main, Teleports, Others
-if Window then
-	Main = Window:CreateTab("Main", 124620632231839)
-	Teleports = Window:CreateTab("Teleports", 6723742952)
-	Others = Window:CreateTab("Others", 12122755689)
-end
+local Window = Rayfield:CreateWindow({
+    Name = "GG hub - Universal",
+    Icon = 16570037140,
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by DNzinGG",
+    ShowText = "GG hub",
+    Theme = "Amethyst",
+    ToggleUIKeybind = "K",
+    ConfigurationSaving = { Enabled = false, FolderName = "GG_hub", FileName = "GG hub - Modelo Teste" }
+})
+
+local Main = Window:CreateTab("Main", 124620632231839)
+local Teleports = Window:CreateTab("Teleports", 6723742952)
+local Others = Window:CreateTab("Others", 12122755689)
 
 local SliderWalkSpeed = Others:CreateSlider({
-	Name = "Change WalkSpeed",
-	Range = {0, 1000},
-	Increment = 5,
-	CurrentValue = hum and hum.WalkSpeed or defaultWalkSpeed,
-	Callback = function(v)
-		if hum then hum.WalkSpeed = v end
-	end
+    Name = "Change WalkSpeed",
+    Range = {0, 1000},
+    Increment = 5,
+    CurrentValue = hum and hum.WalkSpeed or defaultWalkSpeed,
+    Callback = function(Value) if hum then hum.WalkSpeed = Value end end,
 })
-
 local SliderJumpPower = Others:CreateSlider({
-	Name = "Select JumpPower",
-	Range = {0, 1000},
-	Increment = 5,
-	CurrentValue = defaultJumpPower,
-	Callback = function(v)
-		getgenv().currentJumpPower = v
-	end
+    Name = "Change JumpPower",
+    Range = {0, 1000},
+    Increment = 5,
+    CurrentValue = hum and hum.JumpPower or defaultJumpPower,
+    Callback = function(Value) 
+if hum then hum.UseJumpPower = true task.wait() hum.JumpPower = Value end end,
 })
-
-task.spawn(function()
-	while task.wait(0.1) do
-		if hum then
-			pcall(function()
-				hum.UseJumpPower = true
-				hum.JumpPower = tonumber(getgenv().currentJumpPower) or defaultJumpPower
-			end)
-		end
-	end
-end)
-
-Others:CreateButton({
-	Name = "Reset WalkSpeed",
-	Callback = function()
-		if hum then
-			hum.WalkSpeed = defaultWalkSpeed
-			SliderWalkSpeed:Set(defaultWalkSpeed)
-		end
-	end
-})
-
-Others:CreateButton({
-	Name = "Reset JumpPower",
-	Callback = function()
-		if hum then
-			hum.JumpPower = defaultJumpPower
-			getgenv().currentJumpPower = defaultJumpPower
-			SliderJumpPower:Set(defaultJumpPower)
-		end
-	end
-})
+Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) end end })
+Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) end end })
 
 local jumpConnection
 Others:CreateToggle({
-	Name = "Infinite Jump",
-	CurrentValue = false,
-	Flag = "ToggleInfiniteJump",
-	Callback = function(v)
-		if jumpConnection then jumpConnection:Disconnect(); jumpConnection = nil end
-		if v then
-			jumpConnection = UserInputService.JumpRequest:Connect(function()
-				if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-			end)
-		end
-	end
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "ToggleInfiniteJump",
+    Callback = function(Value)
+        if jumpConnection then jumpConnection:Disconnect() end
+        if Value then
+            jumpConnection = UserInputService.JumpRequest:Connect(function()
+                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end)
+        end
+    end,
 })
 
 Others:CreateButton({
-	Name = "Get TP Tool",
-	Callback = function()
-		local Backpack = plr:WaitForChild("Backpack")
-		if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
-		local tool = Instance.new("Tool")
-		tool.Name = "TPTool"
-		tool.RequiresHandle = false
-		tool.CanBeDropped = false
-		tool.Parent = Backpack
-		local soundId = "rbxassetid://9118823109"
-		tool.Activated:Connect(function()
-			if not hrp then return end
-			local mouse = plr:GetMouse()
-			local targetPos = mouse.Hit.Position + Vector3.new(0, 3, 0)
-			local sound = Instance.new("Sound")
-			sound.SoundId = soundId
-			sound.Volume = 1
-			sound.Parent = hrp
-			sound:Play()
-			Debris:AddItem(sound, 2)
-			hrp.CFrame = CFrame.new(targetPos)
-		end)
-	end
+    Name = "Get TP Tool",
+    Callback = function()
+        local Backpack = plr:WaitForChild("Backpack")
+        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
+        local tool = Instance.new("Tool")
+        tool.Name = "TPTool"
+        tool.RequiresHandle = false
+        tool.CanBeDropped = false
+        tool.Parent = Backpack
+        local soundId = "rbxassetid://9118823109"
+        tool.Activated:Connect(function()
+            local mouse = plr:GetMouse()
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
+            local sound = Instance.new("Sound")
+            sound.SoundId = soundId
+            sound.Volume = 1
+            sound.Parent = root
+            sound:Play()
+            Debris:AddItem(sound, 2)
+            root.CFrame = CFrame.new(targetPos)
+        end)
+    end,
 })
 
-Others:CreateButton({
-	Name = "Force Reset",
-	Callback = function()
-		if hum then hum.MaxHealth = 0; hum.Health = 0 end
-	end
-})
+Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
 
-Others:CreateButton({
-	Name = "Fly Gui",
-	Callback = function()
-		pcall(function()
-			loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
-		end)
-	end
-})
-
-Others:CreateToggle({
+local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
 	Flag = "ToggleNoClip",
-	Callback = function(v)
-		getgenv().NoClip = v
-	end
-})
-
-RunService.Heartbeat:Connect(function()
-	if char and getgenv().NoClip then
-		for _, v in pairs(char:GetChildren()) do
-			if v:IsA("BasePart") then pcall(function() v.CanCollide = false end) end
-		end
-	end
-end)
-
-Teleports:CreateButton({
-	Name = "Teleport To Lobby",
-	Callback = function()
-		if hrp then hrp.CFrame = CFrame.new(2906, 35, -2995) + Vector3.new(0, 3, 0) end
-	end
-})
-
-Main:CreateToggle({
-	Name = "Auto Throw Ball",
-	CurrentValue = false,
-	Flag = "ToggleAutoThrow",
-	Callback = function(v)
-		getgenv().autoThrow = v
-		if v then
-			task.spawn(function()
-				while getgenv().autoThrow do
-					task.wait(0.25)
-					pcall(function()
-						local remotes = ReplicatedStorage:WaitForChild("Remotes")
-						if remotes and remotes:FindFirstChild("HitBallRF") and hrp then
-							local dir = hrp.CFrame.LookVector
-							local pos = hrp.Position + dir * 50
-							local args = {{
-								CamPos = hrp.Position,
-								HitPos = pos,
-								HitBallType = 1,
-								ClientTick = tick(),
-								CamDir = dir,
-								AttackMoveSpeed = dir * 30
-							}}
-							remotes.HitBallRF:InvokeServer(unpack(args))
+	Callback = function(Value)
+		getgenv().noClip = Value
+		task.spawn(function()
+			while noClip do task.wait(0.001)
+				if char then
+					for _, v in pairs(char:GetChildren()) do
+						if (v:IsA("MeshPart") or v:IsA("Part")) then
+							v.CanCollide = not noClip
 						end
-					end)
+					end
 				end
-			end)
-		end
-	end
+			end
+		end)
+	end,
 })
-
-Main:CreateToggle({
-	Name = "Auto Perfect Throw Ball (BETA)",
-	CurrentValue = false,
-	Flag = "ToggleAutoPerfectThrow",
-	Callback = function(v)
-		getgenv().AutoPerfect = v
-		if v then
-			SendNotification("GG hub", "This feature is in BETA!", 1.5)
-			task.spawn(function()
-				while getgenv().AutoPerfect do
-					task.wait(0.5)
-					pcall(function()
-						if hrp then
-							local dir = hrp.CFrame.LookVector
-							local startPos = hrp.Position + Vector3.new(0, 3, 0)
-							local targetPos = startPos + dir * 10
-							local remotes = ReplicatedStorage:WaitForChild("Remotes")
-							if remotes and remotes:FindFirstChild("HitBallRF") then
-								local args = {{
-									CamPos = startPos,
-									HitPos = targetPos,
-									HitBallType = 7,
-									ClientTick = tick(),
-									CamDir = dir,
-									AttackMoveSpeed = dir * 10
-								}}
-								remotes.HitBallRF:InvokeServer(unpack(args))
-							end
-						end
-					end)
-				end
-			end)
-		end
-	end
-})
-
-local arenaPositions = {
-	Arena1 = Vector3.new(3074.73, 7.56, -2997.79),
-	Arena2 = Vector3.new(77.73, 7.58, -2997.79),
-	Arena3 = Vector3.new(-4545.59, 7.58, -2997.79),
-	Arena4 = Vector3.new(9167.53, 7.58, -2997.79),
-	Arena5 = Vector3.new(12580.61, 7.58, -2997.79),
-	Arena6 = Vector3.new(17922.83, 7.58, -2997.79)
-}
-
-if Teleports then
-	Teleports:CreateDropdown({
-		Name = "Select Arena",
-		Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arena6"},
-		CurrentOption = nil,
-		Flag = "DropdownSelectArena",
-		MultipleOptions = false,
-		Callback = function(Option)
-			if type(Option) == "table" then Option = Option[1] end
-			getgenv().currentArena = Option
-		end
-	})
-	Teleports:CreateButton({
-		Name = "Teleport to Arena",
-		Callback = function()
-			if not hrp or not getgenv().currentArena then return end
-			local target = arenaPositions[getgenv().currentArena]
-			if target then hrp.CFrame = CFrame.new(target) + Vector3.new(0, 3, 0) end
-		end
-	})
-	Teleports:CreateDropdown({
-		Name = "Select Practice Arena",
-		Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arena6"},
-		CurrentOption = nil,
-		Flag = "DropdownSelectPracticeArena",
-		MultipleOptions = false,
-		Callback = function(Option)
-			if type(Option) == "table" then Option = Option[1] end
-			getgenv().currentPracticeArena = Option
-		end
-	})
-	Teleports:CreateButton({
-		Name = "Teleport To Practice Arena",
-		Callback = function()
-			SendNotification("GG hub", "In Development...", 2)
-		end
-	})
-end
