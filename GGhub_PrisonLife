@@ -390,3 +390,10 @@ Others:CreateButton({
 	end,
 })
 return true
+
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
