@@ -355,3 +355,10 @@ local ButtonTeleportToHallowenEvent = Teleports:CreateButton({
 	hrp.CFrame = workspace.Gameplay.Map.HalloweenPortal.Portal.Part.CFrame
 	end,
 })
+
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
