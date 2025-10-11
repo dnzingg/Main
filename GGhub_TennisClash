@@ -223,9 +223,9 @@ Teleports:CreateButton({
 })
 
 Main:CreateToggle({
-	Name = "Auto Throw Ball",
+	Name = "Auto Strike",
 	CurrentValue = false,
-	Flag = "ToggleAutoThrow",
+	Flag = "ToggleAutoStrike",
 	Callback = function(v)
 		getgenv().autoThrow = v
 		if v then
@@ -255,7 +255,7 @@ Main:CreateToggle({
 })
 
 Main:CreateToggle({
-	Name = "Auto Perfect Throw Ball (BETA)",
+	Name = "Auto Smash(BETA)",
 	CurrentValue = false,
 	Flag = "ToggleAutoPerfectThrow",
 	Callback = function(v)
