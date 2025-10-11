@@ -21,13 +21,15 @@ plr.CharacterAdded:Connect(updateCharacter)
 local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
 local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
 
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
 local Window = Rayfield:CreateWindow({
-    Name = "GG hub - oMega Obby ðŸŒŸ 725 Stages!",
-    Icon = 0,
+    Name = "GG hub - " .. gameName,
+    Icon = 16570037140,
     LoadingTitle = "Loading...",
     LoadingSubtitle = "by DNzinGG",
     ShowText = "GG hub",
-    Theme = "Ocean",
+    Theme = "Amethyst",
     ToggleUIKeybind = "K",
     DisableRayfieldPrompts = true,
    DisableBuildWarnings = true,
@@ -313,5 +315,3 @@ end
 end,
 }),
 })
-
-Rayfield:LoadConfiguration()
