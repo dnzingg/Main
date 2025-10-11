@@ -32,7 +32,7 @@ plr.CharacterAdded:Connect(updateCharacter)
 local defaultWalkSpeed, defaultJumpPower = 28, 52
 getgenv().currentJumpPower = defaultJumpPower
 getgenv().currentArena, getgenv().currentPracticeArena = nil, nil
-getgenv().autoThrow, getgenv().AutoPerfect, getgenv().NoClip = false, false, false
+getgenv().autoStrike, getgenv().autoSmash, getgenv().NoClip = false, false, false
 getgenv().esp, getgenv().espArena, getgenv().espPlayers, getgenv().espPlayersNear = false, false, false, false
 
 getgenv().SendNotification = function(title, content, duration, image)
@@ -227,10 +227,10 @@ Main:CreateToggle({
 	CurrentValue = false,
 	Flag = "ToggleAutoStrike",
 	Callback = function(v)
-		getgenv().autoThrow = v
+		getgenv().autoStrike = v
 		if v then
 			task.spawn(function()
-				while getgenv().autoThrow do
+				while getgenv().autoStrike do
 					task.wait(0.25)
 					pcall(function()
 						local remotes = ReplicatedStorage:FindFirstChild("Remotes")
@@ -257,13 +257,13 @@ Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Smash(BETA)",
 	CurrentValue = false,
-	Flag = "ToggleAutoPerfectThrow",
+	Flag = "ToggleAutoSmash(BETA)",
 	Callback = function(v)
-		getgenv().AutoPerfect = v
+		getgenv().autoSmash = v
 		if v then
 			SendNotification("GG hub", "This feature is in BETA!", 1.5)
 			task.spawn(function()
-				while getgenv().AutoPerfect do
+				while getgenv().autoSmash do
 					task.wait(0.5)
 					pcall(function()
 						if hrp then
