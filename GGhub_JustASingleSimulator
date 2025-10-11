@@ -422,3 +422,22 @@ local ButtonDestroyGui = Others:CreateButton({
 	Rayfield:Destroy()
 	end,
 })
+
+local ButtonDestroyAllInvisibleWalls = Others:CreateButton({
+	Name = "Destroy All Invisible Walls",
+	Callback = function()
+	local destroyed = false
+	
+	if not destroyed then
+for i,v in pairs(game.Workspace.Map:GetDescendants()) do
+if v.Name == "InvisibleWalls" and v:IsA("Folder") then
+v:Destroy()
+local destroyed = true
+SendNotification("Sucess", "All walls have been successfully removed!", 2)
+end
+end
+else
+SendNotification("GG hub", "You've already removed all the walls!", 2)
+end
+	end,
+})
