@@ -26,13 +26,15 @@ getgenv().autoKillNinja = false
 getgenv().autoBoss = false
 getgenv().autoCollectCash = false
 
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
 local Window = Rayfield:CreateWindow({
-    Name = "GG hub - Ninja Tycoon",
-    Icon = 0,
+    Name = "GG hub - " .. gameName,
+    Icon = 16570037140,
     LoadingTitle = "Loading...",
     LoadingSubtitle = "by DNzinGG",
     ShowText = "GG hub",
-    Theme = "Ocean",
+    Theme = "Amethyst",
     ToggleUIKeybind = "K",
     DisableRayfieldPrompts = true,
    DisableBuildWarnings = true,
@@ -437,5 +439,3 @@ RyoShop:CreateToggle({
         end
     end,
 })
-
-Rayfield:LoadConfiguration()
