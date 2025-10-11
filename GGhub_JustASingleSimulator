@@ -6,6 +6,7 @@ local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local char, hum, hrp
 local function updateCharacter(c)
@@ -17,18 +18,20 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 18
-local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
+local defaultWalkSpeed = 18
+local defaultJumpPower = 50
+getgenv().currentWalkSpeed = 18
+getgenv().currentArea = nil
 
 getgenv().SendNotification = function(title, content, duration, image)
-if Rayfield then
+    if Rayfield then
         Rayfield:Notify({
-   Title = title or "GG hub",
-   Content = content or "",
-   Duration = duration or 3,
-   Image = image or 5107182098,
-})
-end
+            Title = title or "GG hub",
+            Content = content or "",
+            Duration = duration or 3,
+            Image = image or 5107182098,
+        })
+    end
 end
 
 local Window = Rayfield:CreateWindow({
@@ -39,6 +42,8 @@ local Window = Rayfield:CreateWindow({
     ShowText = "GG hub",
     Theme = "Amethyst",
     ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
     ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - Just a single Simulator" }
 })
 
@@ -50,17 +55,36 @@ local SliderWalkSpeed = Others:CreateSlider({
     Name = "Change WalkSpeed",
     Range = {0, 1000},
     Increment = 5,
-    CurrentValue = hum and hum.WalkSpeed or defaultWalkSpeed,
-    Callback = function(Value) if hum then hum.WalkSpeed = Value end end,
+    CurrentValue = defaultWalkSpeed,
+    Callback = function(v)
+        getgenv().currentWalkSpeed = v
+    end,
 })
+
+task.spawn(function()
+    while task.wait(0.0001) do
+        if hum then
+            pcall(function()
+                hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
+            end)
+        end
+    end
+end)
+
 local SliderJumpPower = Others:CreateSlider({
     Name = "Change JumpPower",
     Range = {0, 1000},
     Increment = 5,
-    CurrentValue = hum and hum.JumpPower or defaultJumpPower,
-    Callback = function(Value) 
-if hum then hum.UseJumpPower = true task.wait() hum.JumpPower = Value end end,
+    CurrentValue = defaultJumpPower,
+    Callback = function(Value)
+        if hum then
+            hum.UseJumpPower = true
+            task.wait()
+            hum.JumpPower = Value
+        end
+    end,
 })
+
 Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) end end })
 Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) end end })
 
@@ -135,10 +159,137 @@ local ToggleAutoLollipop = Main:CreateToggle({
 	CurrentValue = false,
 	Flag = "ToggleAutoLollipop",
 	Callback = function(Value)
-	getgenv().AutoClick = Value
-	
-	while AutoClick do task.wait(0.00001)
-	game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Clicker"):FireServer()
-	end
+	    getgenv().AutoClick = Value
+	    while AutoClick do task.wait(0.00001)
+	        ReplicatedStorage.Remotes.Clicker:FireServer()
+	    end
 	end,
 })
+
+local ToggleAutoRebirth = Main:CreateToggle({
+	Name = "Auto Rebirth",
+	CurrentValue = false,
+	Flag = "ToggleAutoRebirth",
+	Callback = function(Value)
+	    getgenv().autoRebirth = Value
+	    while autoRebirth do task.wait(0.3)
+	        ReplicatedStorage.Remotes.Rebirth:FireServer()
+	    end
+	end,
+})
+
+local ToggleAutoEquipBestPets = Main:CreateToggle({
+	Name = "Auto Equip Best Pets(BETA)",
+	CurrentValue = false,
+	Flag = "ToggleAutoEquipBestPets",
+	Callback = function(Value)
+	if Value then
+	SendNotification("GG hub", "This function may not work properly!", 2.3)
+	end
+		getgenv().autoEquip = Value
+		task.spawn(function()
+			while true do
+				task.wait(5)
+				if not autoEquip then break end
+				local petsFolder = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("Pets")
+				local petsStorage = game:GetService("ReplicatedStorage"):FindFirstChild("Pets")
+				if not petsFolder or not petsStorage then
+					continue
+				end
+				local petsList = {}
+				for _, playerPet in ipairs(petsFolder:GetChildren()) do
+					local petNameValue = playerPet:FindFirstChild("PetName")
+					if petNameValue then
+						local petName = petNameValue.Value
+						local replicatedPet = petsStorage:FindFirstChild(petName)
+						if replicatedPet and replicatedPet:FindFirstChild("Settings") then
+							local multiplier = replicatedPet.Settings:FindFirstChild("Multiplier")
+							if multiplier then
+								table.insert(petsList, {
+									Id = playerPet.Name,
+									Name = petName,
+									Multiplier = tonumber(multiplier.Value)
+								})
+							end
+						end
+					end
+				end
+				table.sort(petsList, function(a, b)
+					return a.Multiplier > b.Multiplier
+				end)
+				if #petsList == 0 then
+					continue
+				end
+				local maxEquips = 6
+				for i = 1, math.min(maxEquips, #petsList) do
+					local pet = petsList[i]
+					local args = {"Equip", {tostring(pet.Id)}}
+					game:GetService("ReplicatedStorage").Remotes.Pet:FireServer(unpack(args))
+				end
+			end
+		end)
+	end,
+})
+
+local ToggleAutoEquipPets = Main:CreateToggle({
+	Name = "Auto Equip Pets(Random)",
+	CurrentValue = false,
+	Flag = "ToggleAutoEquipPets(Random)",
+	Callback = function(Value)
+	    getgenv().autoPet = Value
+	    while autoPet do task.wait(0.66)
+	        for i,v in pairs(plr.Data.Pets:GetChildren()) do
+	            if v:IsA("Folder") then
+	                ReplicatedStorage.Remotes.Pet:FireServer("Equip",{tostring(v)})
+	            end
+	        end
+	    end
+	end,
+})
+
+local ButtonUnlockAllAreas = Main:CreateButton({
+	Name = "Unlock All Areas",
+	Callback = function()
+	    for i,v in pairs(workspace.Map:GetChildren()) do
+	        if v.Name == "Doors" then
+	            v:Destroy()
+	        end
+	    end
+	end,
+})
+
+local function GetAreas()
+    local areas = {}
+    for _, v in ipairs(Workspace.Map:GetChildren()) do
+        if v:IsA("Folder") and v:FindFirstChild("Ground") then table.insert(areas, v.Name) end
+    end
+    if #areas == 0 then table.insert(areas, nil) end
+    return areas
+end
+
+local DropdownSelectArea = Teleports:CreateDropdown({
+	Name = "Select Area",
+	Options = GetAreas(),
+	CurrentOption = nil,
+	Flag = "DropdownSelectArea",
+	Callback = function(Option)
+	    if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentArea = Option or nil
+	end,
+})
+
+local ButtonTeleportToArea = Teleports:CreateButton({
+	Name = "TeleportToArea",
+	Callback = function()
+	    if getgenv().currentArea ~= nil then
+	        for _,v in pairs(game.Workspace.Map:GetChildren()) do
+	            if v.Name == getgenv().currentArea then
+	                local part = v.Ground:FindFirstChildOfClass("Part") or v.Ground
+	                hrp.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+	            end
+	        end
+	    end
+	end,
+})
+
+Rayfield:LoadConfiguration()
