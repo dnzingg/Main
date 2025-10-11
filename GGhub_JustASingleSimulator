@@ -50,6 +50,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
+local MainOther = Window:CreateTab("MainOther", 127961652457612)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
@@ -204,7 +205,7 @@ Main:CreateToggle({
 		getgenv().AutoClick = Value
 		task.spawn(function()
 			while getgenv().AutoClick do
-				task.wait(0.05)
+				task.wait(0.00001)
 				pcall(function()
 					ReplicatedStorage.Remotes.Clicker:FireServer()
 				end)
@@ -240,7 +241,7 @@ Main:CreateToggle({
 			SendNotification("GG hub", "This function may not work properly!", 2.3)
 			task.spawn(function()
 				while getgenv().autoEquip do
-					task.wait(5)
+					task.wait(3)
 					local petsFolder = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("Pets")
 					local petsStorage = ReplicatedStorage:FindFirstChild("Pets")
 					if not petsFolder or not petsStorage then continue end
@@ -291,6 +292,19 @@ Main:CreateToggle({
 				end
 			end
 		end)
+	end,
+})
+
+local ToggleAutoUnlockAreas = Main:CreateToggle({
+	Name = "Auto Unlock Areas",
+	CurrentValue = false,
+	Flag = "ToggleAutoUnlockAreas",
+	Callback = function(Value)
+	getgenv().autoArea = Value
+	
+	while autoArea do task.wait(0.55)
+	game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Area"):FireServer()
+	end
 	end,
 })
 
@@ -391,7 +405,133 @@ Main:CreateToggle({
 	end,
 })
 
-local GetAllGamepass = Main:CreateButton({
+local ButtonDestroyAllInvisibleWalls = Others:CreateButton({
+	Name = "Destroy All Invisible Walls",
+	Callback = function()
+	local destroyed = false
+	
+	if not destroyed then
+for i,v in pairs(game.Workspace.Map:GetDescendants()) do
+if v.Name == "InvisibleWalls" and v:IsA("Folder") then
+v:Destroy()
+local destroyed = true
+SendNotification("Sucess", "All walls have been successfully removed!", 2)
+end
+end
+else
+SendNotification("GG hub", "You've already removed all the walls!", 2)
+end
+	end,
+})
+
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
+
+local ToggleAutoUpgradeMoreLollipop = MainOther:CreateToggle({
+	Name = "Auto Upgrade More Lollipop",
+	CurrentValue = false,
+	Flag = "ToggleAutoUpgradeMoreLollipop",
+	Callback = function(Value)
+	getgenv().autoUpgrade = Value
+	
+	while autoUpgrade do task.wait(0.3)
+	local args = {
+	"2"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GemUpgrade"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoUpgradeMoreWalkSpeed = MainOther:CreateToggle({
+	Name = "Auto Upgrade More WalkSpeed",
+	CurrentValue = false,
+	Flag = "ToggleAutoUpgradeMoreWalkSpeed",
+	Callback = function(Value)
+	getgenv().autoUpgrade = Value
+	
+	while autoUpgrade do task.wait(0.3)
+	local args = {
+	"1"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GemUpgrade"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoDeleteBadPets = MainOther:CreateToggle({
+	Name = "Auto Delete Bad Pets",
+	CurrentValue = false,
+	Flag = "ToggleAutoDeleteBadPets",
+	Callback = function(Value)
+		getgenv().AutoDelete = Value
+		task.spawn(function()
+			while getgenv().AutoDelete do
+				task.wait(2)
+				local petsFolder = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("Pets")
+				local petsStorage = ReplicatedStorage:FindFirstChild("Pets")
+				if not petsFolder or not petsStorage then continue end
+				local petsList = {}
+				for _, playerPet in ipairs(petsFolder:GetChildren()) do
+					local petNameValue = playerPet:FindFirstChild("PetName")
+					if petNameValue then
+						local petName = petNameValue.Value
+						local replicatedPet = petsStorage:FindFirstChild(petName)
+						if replicatedPet and replicatedPet:FindFirstChild("Settings") then
+							local multiplier = replicatedPet.Settings:FindFirstChild("Multiplier")
+							if multiplier then
+								table.insert(petsList, { Id = playerPet.Name, Name = petName, Multiplier = tonumber(multiplier.Value) })
+							end
+						end
+					end
+				end
+				table.sort(petsList, function(a, b) return a.Multiplier > b.Multiplier end)
+				if #petsList == 0 then continue end
+				local keepCount = math.min(5, #petsList)
+				local petsToDelete = {}
+				for i = keepCount + 1, #petsList do
+					table.insert(petsToDelete, tostring(petsList[i].Id))
+				end
+				if #petsToDelete > 0 then
+					pcall(function()
+						ReplicatedStorage.Remotes.Pet:FireServer("Delete", petsToDelete)
+					end)
+				end
+			end
+		end)
+	end,
+})
+
+local ToggleAutoDeleteAllPets = MainOther:CreateToggle({
+	Name = "Auto Delete All Pets",
+	CurrentValue = false,
+	Flag = "ToggleAutoDeleteAllPets",
+	Callback = function(Value)
+		getgenv().AutoDeleteAll = Value
+		task.spawn(function()
+			while getgenv().AutoDeleteAll do
+				task.wait(1)
+				local petsFolder = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("Pets")
+				if not petsFolder then continue end
+				local petsToDelete = {}
+				for _, pet in ipairs(petsFolder:GetChildren()) do
+					table.insert(petsToDelete, tostring(pet.Name))
+				end
+				if #petsToDelete > 0 then
+					pcall(function()
+						ReplicatedStorage.Remotes.Pet:FireServer("Delete", petsToDelete)
+					end)
+				end
+			end
+		end)
+	end,
+})
+
+local GetAllGamepass = MainOther:CreateButton({
 	Name = "Get All Gamepass",
 	Callback = function()
 		local obtained = {}
@@ -416,28 +556,4 @@ local GetAllGamepass = Main:CreateButton({
 	end,
 })
 
-local ButtonDestroyGui = Others:CreateButton({
-	Name = "Destroy Gui",
-	Callback = function()
-	Rayfield:Destroy()
-	end,
-})
-
-local ButtonDestroyAllInvisibleWalls = Others:CreateButton({
-	Name = "Destroy All Invisible Walls",
-	Callback = function()
-	local destroyed = false
-	
-	if not destroyed then
-for i,v in pairs(game.Workspace.Map:GetDescendants()) do
-if v.Name == "InvisibleWalls" and v:IsA("Folder") then
-v:Destroy()
-local destroyed = true
-SendNotification("Sucess", "All walls have been successfully removed!", 2)
-end
-end
-else
-SendNotification("GG hub", "You've already removed all the walls!", 2)
-end
-	end,
-})
+Rayfield:LoadConfiguration()
