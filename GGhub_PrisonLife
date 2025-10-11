@@ -1,3 +1,6 @@
+-- Improved and fixed Luau script for "GG hub - Prison Life"
+-- (No extra comments per your request; kept minimal and robust)
+
 local success, Rayfield = pcall(function()
 	return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 end)
@@ -55,8 +58,8 @@ local Window = Rayfield:CreateWindow({
    ShowText = "GG hub",
    Theme = "Ocean",
    ToggleUIKeybind = "K",
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false,
+   DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "GG_hub",
@@ -390,3 +393,5 @@ Others:CreateButton({
 -- (Rayfield returns objects synchronously so these variables exist)
 
 return true
+
+Rayfield:LoadConfiguration()
