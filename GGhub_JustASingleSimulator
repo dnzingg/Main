@@ -34,8 +34,10 @@ getgenv().SendNotification = function(title, content, duration, image)
     end
 end
 
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
 local Window = Rayfield:CreateWindow({
-    Name = "GG hub - Just a single Simulator",
+    Name = "GG hub - " .. gameName,
     Icon = 16570037140,
     LoadingTitle = "Loading...",
     LoadingSubtitle = "by DNzinGG",
@@ -291,5 +293,3 @@ local ButtonTeleportToArea = Teleports:CreateButton({
 	    end
 	end,
 })
-
-Rayfield:LoadConfiguration()
