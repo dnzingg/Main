@@ -32,9 +32,11 @@ getgenv().currentCheckpoint = nil
 getgenv().currentNPC = nil
 getgenv().currentItem = nil
 
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
 local Window = Rayfield:CreateWindow({
-Name = "GG hub - Just a single Obby",
-Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+Name = "GG hub - " .. gameName,
+Icon = 16570037140,
 LoadingTitle = "Loading...",
 LoadingSubtitle = "by DNzinGG",
 ShowText = "GG hub", -- for mobile users to unhide rayfield, change if you'd like
@@ -415,5 +417,3 @@ end
 end
 	end,
 })
-
-Rayfield:LoadConfiguration()
