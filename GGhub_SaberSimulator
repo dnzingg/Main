@@ -8,8 +8,10 @@ local Debris = game:GetService("Debris")
 
 local plr = Players.LocalPlayer
 local char, hum, hrp
+
 local function updateCharacter(c)
-	char = c or plr.Character or plr.CharacterAdded:Wait()
+	c = c or plr.Character or plr.CharacterAdded:Wait()
+	char = c
 	hum = char:WaitForChild("Humanoid")
 	hrp = char:WaitForChild("HumanoidRootPart")
 end
@@ -17,9 +19,8 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed = 24
-local defaultJumpPower = 60
-getgenv().currentLocation = nil
+local defaultWalkSpeed, defaultJumpPower = 24, 60
+getgenv().currentLocation, getgenv().currentBoss = nil, nil
 
 getgenv().SendNotification = function(title, content, duration, image)
 	if Rayfield then
@@ -32,14 +33,18 @@ getgenv().SendNotification = function(title, content, duration, image)
 	end
 end
 
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
 local Window = Rayfield:CreateWindow({
-	Name = "GG hub - Saber Simulator",
+	Name = "GG hub - " .. gameName,
 	Icon = 16570037140,
 	LoadingTitle = "Loading...",
 	LoadingSubtitle = "by DNzinGG",
 	ShowText = "GG hub",
 	Theme = "Amethyst",
 	ToggleUIKeybind = "K",
+	DisableRayfieldPrompts = true,
+	DisableBuildWarnings = true,
 	ConfigurationSaving = {
 		Enabled = true,
 		FolderName = "GG_hub",
@@ -162,10 +167,11 @@ Others:CreateToggle({
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
-			while noClip do task.wait(0.001)
+			while noClip do
+				task.wait(0.05)
 				if char then
 					for _, v in pairs(char:GetChildren()) do
-						if (v:IsA("MeshPart") or v:IsA("Part")) then
+						if v:IsA("MeshPart") or v:IsA("Part") then
 							v.CanCollide = not noClip
 						end
 					end
@@ -175,7 +181,7 @@ Others:CreateToggle({
 	end,
 })
 
-local ToggleAutoSwing = Main:CreateToggle({
+Main:CreateToggle({
 	Name = "Auto Swing",
 	CurrentValue = false,
 	Flag = "ToggleAutoSwing",
@@ -185,19 +191,20 @@ local ToggleAutoSwing = Main:CreateToggle({
 			while autoSwing do
 				task.wait(0.1)
 				local tool = plr.Backpack:FindFirstChildOfClass("Tool") or char:FindFirstChildOfClass("Tool")
-				if tool and tool.Parent == plr.Backpack then
-					tool.Parent = char
-				end
+				if tool and tool.Parent == plr.Backpack then tool.Parent = char end
 				local events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
 				if events:FindFirstChild("SwingSaber") then
 					events.SwingSaber:FireServer()
+					local args = {{ }}
+					local remote = plr.Character and plr.Character:FindFirstChild("Starter") and plr.Character.Starter:FindFirstChild("RemoteClick")
+					if remote then remote:FireServer(unpack(args)) end
 				end
 			end
 		end)
 	end,
 })
 
-local ToggleAutoSellStrength = Main:CreateToggle({
+Main:CreateToggle({
 	Name = "Auto Sell Strength",
 	CurrentValue = false,
 	Flag = "ToggleAutoSellStrength",
@@ -205,17 +212,15 @@ local ToggleAutoSellStrength = Main:CreateToggle({
 		getgenv().autoStrength = Value
 		task.spawn(function()
 			while autoStrength do
-				task.wait(0.1)
-				local strength = plr.leaderstats:FindFirstChild("Strength")
-				local amountLabel = plr.PlayerGui.MainGui.StartFrame.Currency.Strength.Amount
-				if not (strength and amountLabel) then continue end
+				task.wait(0.2)
+				local strength = plr:FindFirstChild("leaderstats") and plr.leaderstats:FindFirstChild("Strength")
+				local amountLabel = plr:FindFirstChild("PlayerGui") and plr.PlayerGui.MainGui.StartFrame.Currency.Strength.Amount
+				if not strength or not amountLabel then continue end
 				local text = amountLabel.Text or ""
 				local currentStr, maxStr = string.match(text, "(%d+)%s*/%s*(%d+)")
 				if not (currentStr and maxStr) then continue end
-				local current = tonumber(currentStr)
-				local max = tonumber(maxStr)
-				local strengthValue = tonumber(strength.Value)
-				if math.abs(strengthValue - max) < 0.0001 and current == max then
+				local current, max = tonumber(currentStr), tonumber(maxStr)
+				if current and max and current >= max then
 					local events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
 					if events:FindFirstChild("SellStrength") then
 						events.SellStrength:FireServer()
@@ -226,124 +231,127 @@ local ToggleAutoSellStrength = Main:CreateToggle({
 	end,
 })
 
-local ToggleAutoSellStrengthInstantly = Main:CreateToggle({
-	Name = "Auto Sell Strength(Instantly)",
+Main:CreateToggle({
+	Name = "Auto Crown",
 	CurrentValue = false,
-	Flag = "ToggleAutoSellInstant",
+	Flag = "ToggleAutoCrown",
 	Callback = function(Value)
-		getgenv().AutoSell = Value
+		getgenv().autoCrown = Value
 		task.spawn(function()
-			while AutoSell do
-				task.wait(0.3)
-				local events = game:GetService("ReplicatedStorage"):WaitForChild("Events")
-				if events:FindFirstChild("SellStrength") then
-					events.SellStrength:FireServer()
+			while autoCrown do
+				task.wait(1.5)
+				for _, v in pairs(workspace.Gameplay.CurrencyPickup.CurrencyHolder:GetChildren()) do
+					if v.Name == "Crown" and v:FindFirstChildOfClass("TouchTransmitter") then
+						firetouchinterest(hrp, v, 0)
+					end
 				end
 			end
 		end)
 	end,
 })
 
-local ToggleAutoCrown = Main:CreateToggle({
-	Name = "Auto Crown",
-	CurrentValue = false,
-	Flag = "ToggleAutoCrown",
-	Callback = function(Value)
-	getgenv().autoCrown = Value
-	
-	while autoCrown do task.wait(1)
-	for _,v in pairs(workspace.Gameplay.CurrencyPickup.CurrencyHolder:GetChildren()) do
-if v.Name == "Crown" then
-if v:FindFirstChildOfClass("TouchTransmitter") then
-firetouchinterest(hrp, v, 0)
-else
-break
-end
-end
-end
-end
-	end,
-})
-
-local ToggleAutoKoth = Main:CreateToggle({
+Main:CreateToggle({
 	Name = "Auto Koth",
 	CurrentValue = false,
 	Flag = "ToggleAutoKoth",
 	Callback = function(Value)
-	getgenv().autoFlag = Value
-	local originalCFrame = hrp.CFrame
-	
-	while autoFlag do task.wait(0.0001)
-	hrp.CFrame = workspace.Gameplay.KOTH.KOH_BOUNDARY.CFrame + Vector3.new(0, -1, 0)
-	end
-	if not autoFlag then
-	hrp.CFrame = originalCFrame
-	end
+		getgenv().autoFlag = Value
+		task.spawn(function()
+			local originalCFrame = hrp.CFrame
+			while autoFlag do
+				task.wait(0.05)
+				if Workspace:FindFirstChild("Gameplay") and Workspace.Gameplay:FindFirstChild("KOTH") then
+					local koth = Workspace.Gameplay.KOTH:FindFirstChild("KOH_BOUNDARY")
+					if koth then hrp.CFrame = koth.CFrame + Vector3.new(0, -2.5, 0) end
+				end
+			end
+			if hrp and originalCFrame then hrp.CFrame = originalCFrame end
+		end)
 	end,
 })
 
 local function GetLocations()
-    local locations = {}
-    for _, v in ipairs(workspace.Gameplay.Locations:GetChildren()) do
-        if v:IsA("Part") then table.insert(locations, v.Name) end
-    end
-    if #locations == 0 then table.insert(locations, nil) end
-    return locations
+	local locations = {}
+	for _, v in ipairs(workspace.Gameplay.Locations:GetChildren()) do
+		if v:IsA("Part") then table.insert(locations, v.Name) end
+	end
+	return #locations > 0 and locations or {"None"}
 end
-local DropdownSelectLocation = Teleports:CreateDropdown({
+
+Teleports:CreateDropdown({
 	Name = "Select Location",
 	Options = GetLocations(),
 	CurrentOption = nil,
 	Flag = "DropdownSelectLocation",
 	Callback = function(Option)
-	if type(Option) == "table" then Option = Option[1] end
-        getgenv().currentLocation = Option or nil
+		if type(Option) == "table" then Option = Option[1] end
+		getgenv().currentLocation = Option or nil
 	end,
 })
 
-local ButtonTeleportToLocation = Teleports:CreateButton({
+Teleports:CreateButton({
 	Name = "Teleport To Location",
 	Callback = function()
-	if currentLocation ~= nil then
-	for _,v in pairs(workspace.Gameplay.Locations:GetChildren()) do
-	if v.Name == currentLocation then
-	hrp.CFrame = v.CFrame
-	end
-	end
-	end
-	end,
-})
-
-local ButtonTeleportToSpawn = Teleports:CreateButton({
-	Name = "Teleport To Spawn",
-	Callback = function()
-		local spawns = workspace.Gameplay.SpawnLocations:GetChildren()
-		if #spawns == 0 then return end
-		
-		local randomSpawn = spawns[math.random(1, #spawns)]
-		if randomSpawn:IsA("SpawnLocation") then
-			hrp.CFrame = randomSpawn.CFrame + Vector3.new(0, 1, 0)
+		if currentLocation then
+			for _, v in pairs(workspace.Gameplay.Locations:GetChildren()) do
+				if v.Name == currentLocation then
+					hrp.CFrame = v.CFrame
+					break
+				end
+			end
 		end
 	end,
 })
 
-local DropdownSelectBoss = Main:CreateDropdown({
-	Name = "Select Boss",
-	Options = {""},
-	CurrentOption = nil,
-	Flag = "DropdownSelectBoss",
-	Callback = function(Option)
-	
+Teleports:CreateButton({
+	Name = "Teleport To Spawn",
+	Callback = function()
+		local spawns = workspace.Gameplay.SpawnLocations:GetChildren()
+		if #spawns == 0 then return end
+		local randomSpawn = spawns[math.random(1, #spawns)] --
+	if randomSpawn:IsA("SpawnLocation") then
+		hrp.CFrame = randomSpawn.CFrame + Vector3.new(0, 1, 0)
+		task.wait()
+		hum.Health = 0
+		end
 	end,
 })
 
-local ToggleAutoKillBoss = Main:CreateToggle({
+Main:CreateDropdown({
+	Name = "Select Boss",
+	Options = {"1"},
+	CurrentOption = nil,
+	MultipleOptions = false,
+	Flag = "DropdownSelectBoss",
+	Callback = function(Option)
+		if type(Option) == "table" then Option = Option[1] end
+		getgenv().currentBoss = Option or nil
+	end,
+})
+
+Main:CreateToggle({
 	Name = "Auto Kill Boss",
 	CurrentValue = false,
 	Flag = "ToggleAutoKillBoss",
 	Callback = function(Value)
-	if Value then
-	SendNotification("GG hub", "In Development...", 3.5)
-	end
+		getgenv().autoBoss = Value
+		task.spawn(function()
+			while autoBoss and currentBoss == "1" do
+				task.wait(0.001)
+				hrp.CFrame = CFrame.new(405, 186, 165)
+				local tool = plr.Backpack:FindFirstChildOfClass("Tool") or char:FindFirstChildOfClass("Tool")
+				if tool and tool.Parent == plr.Backpack then tool.Parent = char end
+				local args = {{Workspace.Gameplay.Boss.BossHolder.Boss}}
+				local remote = plr.Character.Starter and plr.Character.Starter:FindFirstChild("RemoteClick")
+				if remote then remote:FireServer(unpack(args)) end
+			end
+		end)
+	end,
+})
+
+local ButtonTeleportToHallowenEvent = Teleports:CreateButton({
+	Name = "Teleport to Halloween Event",
+	Callback = function()
+	hrp.CFrame = workspace.Gameplay.Map.HalloweenPortal.Portal.Part.CFrame
 	end,
 })
