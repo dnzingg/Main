@@ -29,7 +29,7 @@ else
 end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed, defaultJumpPower = 28, 52
+local defaultWalkSpeed, defaultJumpPower = 32, 52
 getgenv().currentJumpPower = defaultJumpPower
 getgenv().currentArena, getgenv().currentPracticeArena, getgenv().currentJoinArena = nil, nil, nil
 getgenv().autoStrike, getgenv().autoSmash, getgenv().NoClip = false, false, false
@@ -380,6 +380,361 @@ local function createEspBall(ballFolder)
 end
 
 local function clearEspBall(ballFolder)
+	if not ballFolder:FindFirstChild("BallShadow") then return end
+	local b = ballFolder.BallShadow
+	for _,obj in pairs(b:GetChildren()) do
+		if obj:IsA("BillboardGui") or obj:IsA("Highlight") then
+			obj:Destroy()
+		end
+	end
+end
+
+local function createEspPlayer(target)
+	if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
+	local hrp2 = target.Character.HumanoidRootPart
+	if not target.Character:FindFirstChild("BillboardGui") then
+		local gui = Instance.new("BillboardGui")
+		gui.Size = UDim2.new(1,0,1,0)
+		gui.StudsOffsetWorldSpace = Vector3.new(0,4,0)
+		gui.AlwaysOnTop = true
+		gui.Parent = target.Character
+		gui.Adornee = hrp2
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.new(6,0,6,0)
+		text.BackgroundTransparency = 1
+		text.TextScaled = true
+		text.Parent = gui
+		local stroke = Instance.new("UIStroke")
+		stroke.Thickness = 2
+		stroke.Parent = text
+		local hl = Instance.new("Highlight")
+		hl.FillTransparency = 0.5
+		hl.OutlineTransparency = 0
+		hl.Parent = target.Character
+		task.spawn(function()
+			while gui.Parent do
+				task.wait(0.1)
+				if hrp and hrp2 then
+					local dist = (hrp.Position-hrp2.Position).Magnitude
+					text.Text = string.format("%s\n%.1f",target.Name,dist)
+					local color = distanceColor(dist,120)
+					text.TextColor3 = color
+					hl.FillColor = color
+				end
+			end
+		end)
+	end
+end
+
+local function clearEspPlayer(target)
+	if not target.Character then return end
+	for _,obj in pairs(target.Character:GetChildren()) do
+		if obj:IsA("BillboardGui") or obj:IsA("Highlight") then
+			obj:Destroy()
+		end
+	end
+end
+
+local function clearAllEsp()
+	for _,v in pairs(Workspace:GetDescendants()) do
+		if v:IsA("Folder") and v:FindFirstChild("Ball") then
+			clearEspBall(v.Ball)
+		end
+	end
+	for _,pl in pairs(Players:GetPlayers()) do
+		if pl ~= plr then clearEspPlayer(pl) end
+	end
+end
+
+Esp:CreateToggle({
+	Name="Esp All Balls",
+	CurrentValue=false,
+	Flag="ToggleEspAllBalls",
+	Callback=function(Value)
+		getgenv().esp=Value
+		if not Value then clearAllEsp() return end
+		task.spawn(function()
+			while getgenv().esp do
+				task.wait(0.2)
+				for _,v in pairs(Workspace:GetDescendants()) do
+					if not getgenv().esp then break end
+					if v:IsA("Folder") and v:FindFirstChild("Ball") then
+						createEspBall(v.Ball)
+					end
+				end
+			end
+		end)
+	end,
+})
+
+Esp:CreateToggle({
+	Name="Esp Ball From Your Arena",
+	CurrentValue=false,
+	Flag="ToggleEspBallFromYourArena",
+	Callback=function(Value)
+		getgenv().espArena=Value
+		local maxDistance = 120
+		if not Value then clearAllEsp() return end
+		task.spawn(function()
+			while getgenv().espArena do
+				task.wait(0.2)
+				if not hrp then continue end
+				for _,v in pairs(Workspace:GetDescendants()) do
+					if not getgenv().espArena then break end
+					if v:IsA("Folder") and v:FindFirstChild("Ball") then
+						local dist = (v.Ball.Position-hrp.Position).Magnitude
+						if dist<=maxDistance then
+							createEspBall(v.Ball)
+						else
+							clearEspBall(v.Ball)
+						end
+					end
+				end
+			end
+		end)
+	end
+})
+
+getgenv().espPlayers = false
+getgenv().espPlayersNear = false
+
+local function clearAllPlayerEsp()
+	for _,pl in pairs(Players:GetPlayers()) do
+		if pl ~= plr then
+			clearEspPlayer(pl)
+		end
+	end
+end
+
+Esp:CreateToggle({
+	Name="Esp All Players",
+	CurrentValue=false,
+	Flag="ToggleEspAllPlayers",
+	Callback=function(Value)
+		getgenv().espPlayers = Value
+		if not Value then clearAllPlayerEsp() end
+	end
+})
+
+Esp:CreateToggle({
+	Name="Esp Players From Your Area",
+	CurrentValue=false,
+	Flag="ToggleEspPlayersFromYourArena",
+	Callback=function(Value)
+		getgenv().espPlayersNear = Value
+		if not Value then clearAllPlayerEsp() end
+	end
+})
+
+task.spawn(function()
+	while true do
+		task.wait(0.25)
+		if not hrp then continue end
+		for _,pl in pairs(Players:GetPlayers()) do
+			if pl ~= plr and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+				local hrp2 = pl.Character.HumanoidRootPart
+				local dist = (hrp.Position - hrp2.Position).Magnitude
+				if getgenv().espPlayers then
+					createEspPlayer(pl)
+				elseif getgenv().espPlayersNear then
+	if dist <= 120 then
+		createEspPlayer(pl)
+	else
+		clearEspPlayer(pl)
+	end
+else
+	clearEspPlayer(pl)
+end
+end
+	end
+	end
+end)
+
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
+
+local ToggleAutoAwakening = Main:CreateToggle({
+	Name = "Auto Awakening",
+	CurrentValue = false,
+	Flag = "ToggleAutoAwakening",
+	Callback = function(Value)
+	getgenv().autoAwakening = Value
+	
+	while autoAwakening do task.wait(0.1)
+	local args = {
+	"TeamAwake"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MatchRF"):InvokeServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoServe = Main:CreateToggle({
+	Name = "Auto Serve",
+	CurrentValue = false,
+	Flag = "ToggleAutoServe",
+	Callback = function(Value)
+	if Value then
+	SendNotification("GG hub", "In Development...", 2)
+	end
+	end,
+})
+	
+	
+local DropdownSelectArenaToJoin = Main:CreateDropdown({
+	Name = "Select Arena To Join",
+	Options = {"1","2","3","4","5","6"},
+	CurrentOption = nil,
+	Flag = "DropdownSelectArenaToJoin",
+	Callback = function(Option)
+			if type(Option) == "table" then Option = Option[1] end
+		getgenv().currentJoinArena = Option
+	end,
+})
+
+local ToggleAutoJoinInAArena = Main:CreateToggle({
+	Name = "Auto Join In A Arena",
+	CurrentValue = false,
+	Flag = "ToggleAutoJoinInAArena",
+	Callback = function(Value)
+	getgenv().autoJoin = Value
+	if Value then
+	SendNotification("GG hub", "In Development...", 2.3)
+	end
+	
+	while autoJoin do task.wait(0.1)
+	if getgenv().currentJoinArena ~= nil then
+	local teamId = plr:GetAttribute("TeamId")
+	
+	if teamId ~= nil then
+	
+	else
+	
+	end
+	end
+	end
+	end,
+})
+
+local _autoAimbotBallConn
+ToggleAutoAimbotBall = Aimbot:CreateToggle({
+	Name = "Auto Aimbot Ball",
+	CurrentValue = false,
+	Flag = "ToggleAutoAimbotBall",
+	Callback = function(Value)
+		getgenv().autoAimbotBall = Value
+		if _autoAimbotBallConn and _autoAimbotBallConn.Connected then
+			_autoAimbotBallConn:Disconnect()
+			_autoAimbotBallConn = nil
+		end
+		if Value then
+			SendNotification("GG hub", "Auto Aimbot Ball activated!", 2)
+			local speed = 0.15 -- quanto menor, mais rápido a câmera segue a bola
+			_autoAimbotBallConn = RunService.RenderStepped:Connect(function(dt)
+				if not getgenv().autoAimbotBall or not hrp then
+					if _autoAimbotBallConn and _autoAimbotBallConn.Connected then
+						_autoAimbotBallConn:Disconnect()
+						_autoAimbotBallConn = nil
+					end
+					return
+				end
+				local closestBall, closestDist
+				for _,v in pairs(Workspace:GetDescendants()) do
+					if v:IsA("Folder") and v:FindFirstChild("Ball") and v.Ball:FindFirstChild("BallShadow") then
+						local b = v.Ball.BallShadow
+						local dist = (b.Parent.Position - hrp.Position).Magnitude
+						if dist <= 80 and (not closestDist or dist < closestDist) then
+							closestBall = b.Parent
+							closestDist = dist
+						end
+					end
+				end
+				if closestBall then
+					local cam = workspace.CurrentCamera
+					if cam then
+						local targetCFrame = CFrame.new(cam.CFrame.Position, closestBall.Position)
+						cam.CFrame = cam.CFrame:Lerp(targetCFrame, speed)
+					end
+				end
+			end)
+		end
+	end,
+})
+
+local function getNearbyPlayersList(maxDist)
+	local out = {}
+	if not hrp then return out end
+	for _, pl in pairs(Players:GetPlayers()) do
+		if pl ~= plr and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+			local hrp2 = pl.Character.HumanoidRootPart
+			local dist = (hrp.Position - hrp2.Position).Magnitude
+			if dist <= (maxDist or 150) then
+				table.insert(out, pl.Name)
+			end
+		end
+	end
+	table.sort(out, function(a,b) return a:lower() < b:lower() end)
+	if #out == 0 then return {""} end
+	return out
+end
+
+local DropdownSelectPlayerToAimbot = Aimbot:CreateDropdown({
+	Name = "SelectPlayerToAimbot",
+	Options = {""},
+	CurrentOption = nil,
+	Flag = "DropdownSelectPlayerToAimbot",
+	Callback = function(Option)
+		if type(Option) == "table" then Option = Option[1] end
+		getgenv().selectedAimbotPlayerName = (Option and Option ~= "") and Option or nil
+	end,
+})
+
+local ButtonRefreshPlayers = Aimbot:CreateButton({
+	Name = "Refresh Players",
+	Callback = function()
+		local names = getNearbyPlayersList(150)
+		DropdownSelectPlayerToAimbot:Refresh(names)
+	end,
+})
+
+local _aimConn
+local ToggleAutoAimbotPlayerSelected = Aimbot:CreateToggle({
+	Name = "Auto Aimbot Player Selected",
+	CurrentValue = false,
+	Flag = "ToggleAutoAimbotPlayerSelected",
+	Callback = function(Value)
+		getgenv().autoAimbotPlayerSelected = Value
+		if _aimConn and _aimConn.Connected then
+			_aimConn:Disconnect()
+			_aimConn = nil
+		end
+		if Value then
+			local names = getNearbyPlayersList(150)
+			DropdownSelectPlayerToAimbot:Refresh(names)
+			_aimConn = RunService.RenderStepped:Connect(function()
+				if not getgenv().autoAimbotPlayerSelected then return end
+				if not hrp then return end
+				local targetName = getgenv().selectedAimbotPlayerName
+				if not targetName then return end
+				local target = Players:FindFirstChild(targetName)
+				if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
+				local targetHRP = target.Character.HumanoidRootPart
+				if (hrp.Position - targetHRP.Position).Magnitude > 150 then return end
+				local cam = workspace.CurrentCamera
+				if cam then
+					cam.CFrame = CFrame.new(cam.CFrame.Position, targetHRP.Position)
+				end
+			end)
+		end
+	end,
+})
+
+Rayfield:LoadConfiguration()all(ballFolder)
 	if not ballFolder:FindFirstChild("BallShadow") then return end
 	local b = ballFolder.BallShadow
 	for _,obj in pairs(b:GetChildren()) do
