@@ -684,7 +684,6 @@ local DropdownSelectPlayerToAimbot = Aimbot:CreateDropdown({
 	Name = "SelectPlayerToAimbot",
 	Options = {""},
 	CurrentOption = nil,
-	Flag = "DropdownSelectPlayerToAimbot",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		getgenv().selectedAimbotPlayerName = (Option and Option ~= "") and Option or nil
