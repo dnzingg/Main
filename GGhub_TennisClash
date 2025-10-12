@@ -31,7 +31,7 @@ plr.CharacterAdded:Connect(updateCharacter)
 
 local defaultWalkSpeed, defaultJumpPower = 28, 52
 getgenv().currentJumpPower = defaultJumpPower
-getgenv().currentArena, getgenv().currentPracticeArena = nil, nil
+getgenv().currentArena, getgenv().currentPracticeArena, getgenv().currentJoinArena = nil, nil, nil
 getgenv().autoStrike, getgenv().autoSmash, getgenv().NoClip = false, false, false
 getgenv().esp, getgenv().espArena, getgenv().espPlayers, getgenv().espPlayersNear = false, false, false, false
 
@@ -550,10 +550,81 @@ end
 	end
 end)
 
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
 local ButtonDestroyGui = Others:CreateButton({
 	Name = "Destroy Gui",
 	Callback = function()
 	Rayfield:Destroy()
+	end,
+})
+
+local ToggleAutoAwakening = Main:CreateToggle({
+	Name = "Auto Awakening",
+	CurrentValue = false,
+	Flag = "ToggleAutoAwakening",
+	Callback = function(Value)
+	getgenv().autoAwakening = Value
+	
+	while autoAwakening do task.wait(0.1)
+	local args = {
+	"TeamAwake"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MatchRF"):InvokeServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoServe = Main:CreateToggle({
+	Name = "Auto Serve",
+	CurrentValue = false,
+	Flag = "ToggleAutoServe",
+	Callback = function(Value)
+	if Value then
+	local args = {
+	"AutoServeEnable",
+	true
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SettingsRE"):FireServer(unpack(args))
+else
+local args = {
+	"AutoServeEnable",
+	false
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SettingsRE"):FireServer(unpack(args))
+end
+	end,
+})
+	
+	
+local DropdownSelectArenaToJoin = Main:CreateDropdown({
+	Name = "Select Arena To Join",
+	Options = {"1","2","3","4","5","6"},
+	CurrentOption = nil,
+	Flag = "DropdownSelectArenaToJoin",
+	Callback = function(Option)
+			if type(Option) == "table" then Option = Option[1] end
+		getgenv().currentJoinArena = Option
+	end,
+})
+
+local ToggleAutoJoinInAArena = Main:CreateToggle({
+	Name = "Auto Join In A Arena",
+	CurrentValue = false,
+	Flag = "ToggleAutoJoinInAArena",
+	Callback = function(Value)
+	getgenv().autoJoin = Value
+	
+	while autoJoin do task.wait(0.1)
+	if getgenv().currentJoinArena ~= nil then
+	local teamId = plr:GetAttribute("TeamId")
+	
+	if teamId ~= nil then
+	print("a")
+	else
+	print("b")
+	end
+	end
+	end
 	end,
 })
 
