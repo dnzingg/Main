@@ -61,6 +61,7 @@ local SliderWalkSpeed = Others:CreateSlider({
 	CurrentValue = defaultWalkSpeed,
 	Callback = function(v)
 		getgenv().currentWalkSpeed = v
+		InputWalkSpeed:Set(v)
 	end,
 })
 
@@ -75,6 +76,7 @@ local InputWalkSpeed = Others:CreateInput({
 		if num then
 			if num <= 1000 then
 				getgenv().currentWalkSpeed = num
+				SliderWalkSpeed:Set(num)
 			else
 				SendNotification("GG hub", "The maximum value is 1000!", 2)
 			end
@@ -103,6 +105,7 @@ local SliderJumpPower = Others:CreateSlider({
 		if hum then
 			hum.UseJumpPower = true
 			hum.JumpPower = Value
+			InputJumpPower:Set(Value)
 		end
 	end,
 })
@@ -118,6 +121,7 @@ local InputJumpPower = Others:CreateInput({
 		if num then
 			if num <= 1000 then
 				getgenv().currentJumpPower = num
+				SliderJumpPower:Set(num)
 				if hum then hum.JumpPower = num end
 			else
 				SendNotification("GG hub", "The maximum value is 1000!", 2)
@@ -238,10 +242,10 @@ Main:CreateToggle({
 	Callback = function(Value)
 		getgenv().autoEquip = Value
 		if Value then
-			SendNotification("GG hub", "This function may not work properly!", 2.3)
+			SendNotification("GG hub", "This function may not work properly!", 2)
 			task.spawn(function()
 				while getgenv().autoEquip do
-					task.wait(3)
+					task.wait(2)
 					local petsFolder = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("Pets")
 					local petsStorage = ReplicatedStorage:FindFirstChild("Pets")
 					if not petsFolder or not petsStorage then continue end
@@ -282,7 +286,7 @@ Main:CreateToggle({
 		getgenv().autoPet = Value
 		task.spawn(function()
 			while getgenv().autoPet do
-				task.wait(1)
+				task.wait(1.3)
 				for _,v in pairs(plr.Data.Pets:GetChildren()) do
 					if v:IsA("Folder") then
 						pcall(function()
@@ -302,7 +306,7 @@ local ToggleAutoUnlockAreas = Main:CreateToggle({
 	Callback = function(Value)
 	getgenv().autoArea = Value
 	
-	while autoArea do task.wait(0.55)
+	while autoArea do task.wait(0.5)
 	game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Area"):FireServer()
 	end
 	end,
@@ -325,7 +329,6 @@ local function GetAreas()
 	if #areas == 0 then table.insert(areas, nil) end
 	return areas
 end
-
 local DropdownSelectArea = Teleports:CreateDropdown({
 	Name = "Select Area",
 	Options = GetAreas(),
@@ -387,7 +390,7 @@ Main:CreateToggle({
 			end
 			task.spawn(function()
 				while getgenv().autoEgg do
-					task.wait(0.5)
+					task.wait(0.3)
 					for _, eggName in ipairs(getgenv().currentEgg) do
 						local eggsFolder = Workspace:WaitForChild("Map"):FindFirstChild("Eggs")
 						if eggsFolder then
@@ -424,6 +427,7 @@ end
 	end,
 })
 
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
 local ButtonDestroyGui = Others:CreateButton({
 	Name = "Destroy Gui",
 	Callback = function()
@@ -471,7 +475,7 @@ local ToggleAutoDeleteBadPets = MainOther:CreateToggle({
 		getgenv().AutoDelete = Value
 		task.spawn(function()
 			while getgenv().AutoDelete do
-				task.wait(2)
+				task.wait(8)
 				local petsFolder = plr:FindFirstChild("Data") and plr.Data:FindFirstChild("Pets")
 				local petsStorage = ReplicatedStorage:FindFirstChild("Pets")
 				if not petsFolder or not petsStorage then continue end
