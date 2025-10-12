@@ -613,15 +613,18 @@ local ToggleAutoJoinInAArena = Main:CreateToggle({
 	Flag = "ToggleAutoJoinInAArena",
 	Callback = function(Value)
 	getgenv().autoJoin = Value
+	if Value then
+	SendNotification("GG hub", "In Development...", 2.3)
+	end
 	
 	while autoJoin do task.wait(0.1)
 	if getgenv().currentJoinArena ~= nil then
 	local teamId = plr:GetAttribute("TeamId")
 	
 	if teamId ~= nil then
-	print("a")
+	
 	else
-	print("b")
+	
 	end
 	end
 	end
