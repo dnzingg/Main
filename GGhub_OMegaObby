@@ -316,6 +316,7 @@ end,
 }),
 })
 
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
 local ButtonDestroyGui = Others:CreateButton({
 	Name = "Destroy Gui",
 	Callback = function()
