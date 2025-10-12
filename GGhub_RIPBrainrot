@@ -1,0 +1,288 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local TS = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+
+local char, hum, hrp
+local function updateCharacter(c)
+    char = c or plr.Character or plr.CharacterAdded:Wait()
+    hum = char:WaitForChild("Humanoid")
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
+plr.CharacterAdded:Connect(updateCharacter)
+
+local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
+local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
+
+getgenv().SendNotification = function(title, content, duration, image)
+if Rayfield then
+        Rayfield:Notify({
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
+end
+end
+
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
+local Window = Rayfield:CreateWindow({
+    Name = "GG hub - " .. gameName,
+    Icon = 16570037140,
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by DNzinGG",
+    ShowText = "GG hub",
+    Theme = "Amethyst",
+    ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
+    ConfigurationSaving = { Enabled = false, FolderName = "GG_hub", FileName = "GG hub - RIP Brainrot" }
+})
+
+local Main = Window:CreateTab("Main", 124620632231839)
+local Teleports = Window:CreateTab("Teleports", 6723742952)
+local Others = Window:CreateTab("Others", 12122755689)
+
+local SliderWalkSpeed = Others:CreateSlider({
+	Name = "Change WalkSpeed",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultWalkSpeed,
+	Callback = function(v)
+		getgenv().currentWalkSpeed = v
+	end,
+})
+
+local InputWalkSpeed = Others:CreateInput({
+	Name = "Input WalkSpeed",
+	CurrentValue = tostring(defaultWalkSpeed),
+	PlaceholderText = tostring(defaultWalkSpeed),
+	RemoveTextAfterFocusLost = false,
+	Flag = "InputWalkSpeed",
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentWalkSpeed = num
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
+		end
+	end,
+})
+
+task.spawn(function()
+	while task.wait(0.05) do
+		if hum then
+			pcall(function()
+				hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
+			end)
+		end
+	end
+end)
+
+local SliderJumpPower = Others:CreateSlider({
+	Name = "Change JumpPower",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultJumpPower,
+	Callback = function(Value)
+		if hum then
+			hum.UseJumpPower = true
+			hum.JumpPower = Value
+		end
+	end,
+})
+
+local InputJumpPower = Others:CreateInput({
+	Name = "Input JumpPower",
+	CurrentValue = tostring(defaultJumpPower),
+	PlaceholderText = tostring(defaultJumpPower),
+	RemoveTextAfterFocusLost = false,
+	Flag = "InputJumpPower",
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentJumpPower = num
+				if hum then hum.JumpPower = num end
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid JumpPower value, use numbers!", 2)
+		end
+	end,
+})
+
+Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) InputWalkSpeed:Set(tostring(defaultWalkSpeed)) end end })
+Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) InputJumpPower:Set(tostring(defaultJumpPower)) end end })
+
+local jumpConnection
+Others:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "ToggleInfiniteJump",
+    Callback = function(Value)
+        if jumpConnection then jumpConnection:Disconnect() end
+        if Value then
+            jumpConnection = UserInputService.JumpRequest:Connect(function()
+                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end)
+        end
+    end,
+})
+
+Others:CreateButton({
+    Name = "Get TP Tool",
+    Callback = function()
+        local Backpack = plr:WaitForChild("Backpack")
+        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
+        local tool = Instance.new("Tool")
+        tool.Name = "TPTool"
+        tool.RequiresHandle = false
+        tool.CanBeDropped = false
+        tool.Parent = Backpack
+        local soundId = "rbxassetid://9118823109"
+        tool.Activated:Connect(function()
+            local mouse = plr:GetMouse()
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
+            local sound = Instance.new("Sound")
+            sound.SoundId = soundId
+            sound.Volume = 1
+            sound.Parent = root
+            sound:Play()
+            Debris:AddItem(sound, 2)
+            root.CFrame = CFrame.new(targetPos)
+        end)
+    end,
+})
+
+Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
+
+local ToggleNoClip = Others:CreateToggle({
+	Name = "No Clip",
+	CurrentValue = false,
+	Flag = "ToggleNoClip",
+	Callback = function(Value)
+		getgenv().noClip = Value
+		task.spawn(function()
+			while noClip do task.wait(0.001)
+				if char then
+					for _, v in pairs(char:GetChildren()) do
+						if (v:IsA("MeshPart") or v:IsA("Part")) then
+							v.CanCollide = not noClip
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
+
+local ToggleAutoLockBase = Main:CreateToggle({
+	Name = "Auto Lock Base",
+	CurrentValue = false,
+	Flag = "Auto Lock Base",
+	Callback = function(Value)
+	getgenv().autoLockBase = Value
+
+while autoLockBase do task.wait(0.01)
+task.spawn(function()
+for _,v in pairs(game.Workspace.Bases:GetDescendants()) do
+if v:IsA("Model") and v:FindFirstChild("PlotTeritory") then
+if v.PlotTeritory:GetAttribute("Player") == plr.Name then
+base = v
+local timer = base.LockgateButton.Button.LockTimer.Frame.TextLabel
+
+if timer.Text == "0s" or timer.Text == "Lock base" then
+local args = {
+	{
+		base.LockgateButton.Button,
+		"\019"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+else
+return
+end
+end
+end
+end
+end)
+end
+	end,
+})
+
+if Main and Main.CreateToggle then
+	Main:CreateToggle({
+		Name = "Auto Attack",
+		CurrentValue = false,
+		Flag = "ToggleAutoAttack",
+		Callback = function(Value)
+			getgenv().autoAttack = Value
+			if Value then
+				task.spawn(function()
+					while getgenv().autoAttack do
+						task.wait(0.01) -- frequência do ataque (0.1s = 10 vezes por segundo)
+						pcall(function()
+							local backpack = plr:FindFirstChild("Backpack")
+							local character = plr.Character
+							local tool = nil
+							if character then tool = character:FindFirstChildOfClass("Tool") end
+							if not tool and backpack then
+								tool = backpack:FindFirstChildOfClass("Tool")
+								if tool then tool.Parent = character end
+							end
+
+							-- Prioridade 1: usa o RemoteEvent (se existir)
+							if ATTACK_REMOTE then
+								for i = 1, 5 do -- 5 ataques rápidos por ciclo
+									task.wait(0.001)
+									local args = { { [2] = "(" } }
+									pcall(function()
+										ATTACK_REMOTE:FireServer(unpack(args))
+									end)
+								end
+							end
+
+							-- Prioridade 2: ativa a Tool se ela estiver equipada
+							if tool and tool.Parent == character then
+								for i = 1, 3 do -- 3 cliques rápidos por ciclo
+									task.wait(0.0001)
+									pcall(function()
+										if tool:FindFirstChild("Activate") or tool.Activate then
+											tool:Activate()
+										end
+									end)
+								end
+							end
+						end)
+					end
+				end)
+			end
+		end,
+	})
+end
+
+Rayfield:LoadConfiguration()
