@@ -17,8 +17,17 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
+for _,v in pairs(game.Workspace.Bases:GetDescendants()) do
+if v:IsA("Model") and v:FindFirstChild("PlotTeritory") then
+if v.PlotTeritory:GetAttribute("Player") == plr.Name then
+plrBase = v
+end
+end
+end
+
 local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
 local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
+getgenv().startPosition, getgenv().finalPosition, getgenv().currentSelectBase = nil, nil, nil
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -43,10 +52,11 @@ local Window = Rayfield:CreateWindow({
     ToggleUIKeybind = "K",
     DisableRayfieldPrompts = true,
    DisableBuildWarnings = true,
-    ConfigurationSaving = { Enabled = false, FolderName = "GG_hub", FileName = "GG hub - RIP Brainrot" }
+    ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - RIP Brainrot" }
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
+local Esp = Window:CreateTab("Esp", 120129574453255)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
@@ -210,16 +220,12 @@ local ToggleAutoLockBase = Main:CreateToggle({
 
 while autoLockBase do task.wait(0.01)
 task.spawn(function()
-for _,v in pairs(game.Workspace.Bases:GetDescendants()) do
-if v:IsA("Model") and v:FindFirstChild("PlotTeritory") then
-if v.PlotTeritory:GetAttribute("Player") == plr.Name then
-base = v
-local timer = base.LockgateButton.Button.LockTimer.Frame.TextLabel
+local timer = plrBase.LockgateButton.Button.LockTimer.Frame.TextLabel
 
 if timer.Text == "0s" or timer.Text == "Lock base" then
 local args = {
 	{
-		base.LockgateButton.Button,
+		plrBase.LockgateButton.Button,
 		"\019"
 	}
 }
@@ -227,25 +233,22 @@ game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.
 else
 return
 end
-end
-end
-end
 end)
 end
 	end,
 })
 
-if Main and Main.CreateToggle then
 	Main:CreateToggle({
 		Name = "Auto Attack",
 		CurrentValue = false,
 		Flag = "ToggleAutoAttack",
 		Callback = function(Value)
 			getgenv().autoAttack = Value
+			
 			if Value then
 				task.spawn(function()
 					while getgenv().autoAttack do
-						task.wait(0.01) -- frequência do ataque (0.1s = 10 vezes por segundo)
+						task.wait(0.01)
 						pcall(function()
 							local backpack = plr:FindFirstChild("Backpack")
 							local character = plr.Character
@@ -255,35 +258,267 @@ if Main and Main.CreateToggle then
 								tool = backpack:FindFirstChildOfClass("Tool")
 								if tool then tool.Parent = character end
 							end
-
-							-- Prioridade 1: usa o RemoteEvent (se existir)
-							if ATTACK_REMOTE then
-								for i = 1, 5 do -- 5 ataques rápidos por ciclo
-									task.wait(0.001)
-									local args = { { [2] = "(" } }
-									pcall(function()
-										ATTACK_REMOTE:FireServer(unpack(args))
-									end)
-								end
-							end
-
-							-- Prioridade 2: ativa a Tool se ela estiver equipada
-							if tool and tool.Parent == character then
-								for i = 1, 3 do -- 3 cliques rápidos por ciclo
-									task.wait(0.0001)
+task.wait(0.0001)
 									pcall(function()
 										if tool:FindFirstChild("Activate") or tool.Activate then
 											tool:Activate()
-										end
+									end
 									end)
-								end
-							end
 						end)
 					end
 				end)
 			end
 		end,
-	})
+})
+
+local ButtonSetStartPosition = Main:CreateButton({
+	Name = "Set Start Position",
+	Callback = function()
+	getgenv().startPosition = hrp.CFrame
+	SendNotification("Start Position:", tostring(hrp.Position), 2)
+	end,
+})
+
+local ButtonSetFinalPosition = Main:CreateButton({
+	Name = "Set Final Position",
+	Callback = function()
+	getgenv().finalPosition = hrp.CFrame
+	SendNotification("Final Position:", tostring(hrp.Position), 2)
+	end,
+})
+
+local ButtonTeleportToStartPosition = Main:CreateButton({
+	Name = "Teleport To Start Position",
+	Callback = function()
+	if hrp and getgenv().startPosition ~= nil then
+	hrp.CFrame = getgenv().startPosition
+	end
+	end,
+})
+
+local ButtonTeleportToFinalPosition = Main:CreateButton({
+	Name = "Teleport To Final Position",
+	Callback = function()
+	if hrp and getgenv().finalPosition ~= nil then
+	hrp.CFrame = getgenv().finalPosition
+	end
+	end,
+})
+
+local ToggleAutoCollectMoney = Main:CreateToggle({
+	Name = "Auto Collect Money",
+	CurrentValue = false,
+	Flag = "ToggleAutoCollectMoney",
+	Callback = function(Value)
+		getgenv().autoCollect = Value
+		
+		task.spawn(function()
+			while getgenv().autoCollect do
+				task.wait(0.7)
+				pcall(function()
+					if not plrBase or not plrBase:FindFirstChild("PlotSlots") then return end
+					
+					for _, v in pairs(plrBase.PlotSlots:GetChildren()) do
+						if v:GetAttribute("Taken") == true and v:FindFirstChild("ClaimButton") then
+							local button = v.ClaimButton:FindFirstChild("Button")
+							if button then
+								local args = {
+									{
+										button,
+										"\020"
+									}
+								}
+								game:GetService("ReplicatedStorage")
+									:WaitForChild("ncxyzero_bridgenet2-fork@1.1.5")
+									:WaitForChild("dataRemoteEvent")
+									:FireServer(unpack(args))
+								task.wait(0.001)
+							end
+						end
+					end
+				end)
+			end
+		end)
+	end,
+})
+
+local EspBrainrotColor = Color3.fromRGB(85, 255, 0)
+
+Esp:CreateColorPicker({
+    Name = "ESP Brainrot Color",
+    Color = EspBrainrotColor,
+    Callback = function(Value)
+        EspBrainrotColor = Value
+    end,
+})
+
+Esp:CreateToggle({
+    Name = "Auto Esp Brainrots From Road",
+    CurrentValue = false,
+    Flag = "ToggleAutoEspBrainrotsFromRoad",
+    Callback = function(Value)
+        getgenv().autoEsp = Value
+        task.spawn(function()
+            while true do
+                task.wait(0.3)
+                local folder = workspace:FindFirstChild("BrainrotRunway")
+                if not folder or not folder:FindFirstChild("BrainrotsWalking") then continue end
+
+                for _, v in pairs(folder.BrainrotsWalking:GetChildren()) do
+                    if not getgenv().autoEsp then
+                        if v:FindFirstChild("GG_Highlight") then v.GG_Highlight:Destroy() end
+                        if v:FindFirstChild("GG_Billboard") then v.GG_Billboard:Destroy() end
+                        for _, child in pairs(v:GetDescendants()) do
+                            if child:IsA("BillboardGui") and child.Name == "GG_Billboard" then
+                                child:Destroy()
+                            end
+                        end
+                    end
+                end
+
+                if not getgenv().autoEsp then break end
+
+                for _, v in pairs(folder.BrainrotsWalking:GetChildren()) do
+                    if v:IsA("Model") and v:GetAttribute("ConfigName") and not v:FindFirstChild("GG_Highlight") then
+                        local adornee = v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
+                        if not adornee then
+                            for _, part in ipairs(v:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    adornee = part
+                                    break
+                                end
+                            end
+                        end
+                        if not adornee then continue end
+
+                        local esp = Instance.new("Highlight")
+                        esp.Name = "GG_Highlight"
+                        esp.FillTransparency = 0.3
+                        esp.OutlineTransparency = 0
+                        esp.FillColor = EspBrainrotColor
+                        esp.Adornee = v
+                        esp.Parent = v
+
+                        local gui = Instance.new("BillboardGui")
+                        gui.Name = "GG_Billboard"
+                        gui.AlwaysOnTop = true
+                        gui.MaxDistance = 5000
+                        gui.Size = UDim2.new(0, 120, 0, 25)
+                        gui.StudsOffset = Vector3.new(0, 6, 0)
+                        gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+                        gui.Adornee = adornee
+                        gui.Parent = adornee
+
+                        local label = Instance.new("TextLabel")
+                        label.Size = UDim2.new(1, 0, 1, 0)
+                        label.BackgroundTransparency = 1
+                        label.Text = tostring(v:GetAttribute("ConfigName") or "Brainrot")
+                        label.TextColor3 = EspBrainrotColor
+                        label.TextScaled = true
+                        label.Font = Enum.Font.FredokaOne
+                        label.Parent = gui
+
+                        local stroke = Instance.new("UIStroke")
+                        stroke.Thickness = 2.8
+                        stroke.Color = Color3.fromRGB(0, 0, 0)
+                        stroke.Transparency = 0
+                        stroke.Parent = label
+                    end
+                end
+            end
+        end)
+    end,
+})
+
+local ButtonTeleportToYouBase = Teleports:CreateButton({
+	Name = "Teleport To You Base",
+	Callback = function()
+	hrp.CFrame = plrBase.Union.CFrame + Vector3.new(0, 4.5, 0)
+	end,
+})
+
+local function GetBases()
+    local bases = {}
+    for _, v in ipairs(game.Workspace.Bases:GetChildren()) do
+        if v:IsA("Model") then table.insert(bases, v.Name) end
+    end
+    if #bases == 0 then table.insert(bases, nil) end
+    return bases
 end
+local DropdownSelectBaseToTeleport = Teleports:CreateDropdown({
+	Name = "Select Base To Teleport",
+	Options = GetBases(),
+	CurrentOption = nil,
+	Flag = "DropdownSelectBaseToTeleport",
+	Callback = function(Option)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentSelectBase = Option or nil
+	end,
+})
+
+local ButtonTeleportToSelectBase = Teleports:CreateButton({
+	Name = "Teleport To Select Base",
+	Callback = function()
+	if getgenv().currentSelectBase ~= nil then
+	for _, v in ipairs(game.Workspace.Bases:GetChildren()) do
+        if v:IsA("Model") and v.Name == currentSelectBase then
+	hrp.CFrame = v.Union.CFrame + Vector3.new(0, 3.5, 0)
+	end
+	end
+	end
+	end,
+})
+
+local ToggleAutoRebirth = Main:CreateToggle({
+	Name = "Auto Rebirth",
+	CurrentValue = false,
+	Flag = "ToggleAutoRebirth",
+	Callback = function(Value)
+	getgenv().autoRebirth = Value
+	
+	while autoRebirth do task.wait(0.1)
+	local args = {
+	{
+		{
+			"\001",
+			"\205(\224\199p\247Ez\174{\185P\026\192\243\a",
+			{}
+		},
+		"\v"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoWheelSpin = Main:CreateToggle({
+	Name = "Auto Wheel Spin",
+	CurrentValue = false,
+	Flag = "ToggleAutoWheelSpin",
+	Callback = function(Value)
+	getgenv().autoSpin = Value
+	
+	while autoSpin do task.wait(0.3)
+	local ticket = workspace.KoloFortuny.TicketCounter.DisplayPart.SurfaceGui.Price.PriceText
+	
+	if ticket.Text ~= "0" then
+	local args = {
+	{
+		{
+			"\001",
+			"x14\156F\172A\183\139\213\146\208\218\165\201\235",
+			{}
+		},
+		"\""
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+else
+return
+	end
+	end
+	end,
+})
 
 Rayfield:LoadConfiguration()
