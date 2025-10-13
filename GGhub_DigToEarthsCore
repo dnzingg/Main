@@ -1,0 +1,339 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local TS = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+
+local char, hum, hrp
+local function updateCharacter(c)
+    char = c or plr.Character or plr.CharacterAdded:Wait()
+    hum = char:WaitForChild("Humanoid")
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
+plr.CharacterAdded:Connect(updateCharacter)
+
+local function GetCurrentPlayerWorld()
+for i,v in pairs(game.Workspace:GetChildren()) do
+if v:IsA("Folder") and v:FindFirstChild("Bottom") then
+if v.Name == plr.CurrentWorld.Value then
+getgenv().plrCurrentWorld = v.Name
+end
+end
+end
+end
+
+local defaultWalkSpeed = 20
+local defaultJumpPower = 50
+getgenv().plrCurrentWorld = nil
+getgenv().currentSelectWorld = nil
+
+GetCurrentPlayerWorld()
+
+getgenv().SendNotification = function(title, content, duration, image)
+if Rayfield then
+        Rayfield:Notify({
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
+end
+end
+
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
+local Window = Rayfield:CreateWindow({
+    Name = "GG hub - " .. gameName,
+    Icon = 16570037140,
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by DNzinGG",
+    ShowText = "GG hub",
+    Theme = "Amethyst",
+    ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
+    ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - Dig To Earth's Core" }
+})
+
+local Main = Window:CreateTab("Main", 124620632231839)
+local Shop = Window:CreateTab("Shop", 11385419674)
+local Teleports = Window:CreateTab("Teleports", 6723742952)
+local Others = Window:CreateTab("Others", 12122755689)
+
+local SliderWalkSpeed = Others:CreateSlider({
+	Name = "Change WalkSpeed",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultWalkSpeed,
+	Callback = function(v)
+		getgenv().currentWalkSpeed = v
+	end,
+})
+
+local InputWalkSpeed = Others:CreateInput({
+	Name = "Input WalkSpeed",
+	CurrentValue = tostring(defaultWalkSpeed),
+	PlaceholderText = tostring(defaultWalkSpeed),
+	RemoveTextAfterFocusLost = false,
+	Flag = "InputWalkSpeed",
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentWalkSpeed = num
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
+		end
+	end,
+})
+
+task.spawn(function()
+	while task.wait(0.05) do
+		if hum then
+			pcall(function()
+				hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
+			end)
+		end
+	end
+end)
+
+local SliderJumpPower = Others:CreateSlider({
+	Name = "Change JumpPower",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultJumpPower,
+	Callback = function(Value)
+		if hum then
+			hum.UseJumpPower = true
+			hum.JumpPower = Value
+		end
+	end,
+})
+
+local InputJumpPower = Others:CreateInput({
+	Name = "Input JumpPower",
+	CurrentValue = tostring(defaultJumpPower),
+	PlaceholderText = tostring(defaultJumpPower),
+	RemoveTextAfterFocusLost = false,
+	Flag = "InputJumpPower",
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentJumpPower = num
+				if hum then hum.JumpPower = num end
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid JumpPower value, use numbers!", 2)
+		end
+	end,
+})
+
+Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) InputWalkSpeed:Set(tostring(defaultWalkSpeed)) end end })
+Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) InputJumpPower:Set(tostring(defaultJumpPower)) end end })
+
+local jumpConnection
+Others:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "ToggleInfiniteJump",
+    Callback = function(Value)
+        if jumpConnection then jumpConnection:Disconnect() end
+        if Value then
+            jumpConnection = UserInputService.JumpRequest:Connect(function()
+                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end)
+        end
+    end,
+})
+
+Others:CreateButton({
+    Name = "Get TP Tool",
+    Callback = function()
+        local Backpack = plr:WaitForChild("Backpack")
+        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
+        local tool = Instance.new("Tool")
+        tool.Name = "TPTool"
+        tool.RequiresHandle = false
+        tool.CanBeDropped = false
+        tool.Parent = Backpack
+        local soundId = "rbxassetid://9118823109"
+        tool.Activated:Connect(function()
+            local mouse = plr:GetMouse()
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
+            local sound = Instance.new("Sound")
+            sound.SoundId = soundId
+            sound.Volume = 1
+            sound.Parent = root
+            sound:Play()
+            Debris:AddItem(sound, 2)
+            root.CFrame = CFrame.new(targetPos)
+        end)
+    end,
+})
+
+Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
+
+local ToggleNoClip = Others:CreateToggle({
+	Name = "No Clip",
+	CurrentValue = false,
+	Flag = "ToggleNoClip",
+	Callback = function(Value)
+		getgenv().noClip = Value
+		task.spawn(function()
+			while noClip do task.wait(0.001)
+				if char then
+					for _, v in pairs(char:GetChildren()) do
+						if (v:IsA("MeshPart") or v:IsA("Part")) then
+							v.CanCollide = not noClip
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
+
+local ToggleAutoGetMoney = Main:CreateToggle({
+	Name = "Auto Get Money",
+	CurrentValue = false,
+	Flag = "ToggleAutoGetMoney",
+	Callback = function(Value)
+	getgenv().autoMoney = Value
+	
+	while autoMoney do task.wait(0.0001)
+	local args = {
+	"hello"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("DigEvent"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoGetGems = Main:CreateToggle({
+	Name = "Auto Get Gems",
+	CurrentValue = false,
+	Flag = "ToggleAutoGetGems",
+	Callback = function(Value)
+	getgenv().autoGem = Value
+	
+	while autoGem do task.wait(0.0001)
+	local args = {
+	20,
+	"bye"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GemEvent"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleInstantDig = Main:CreateToggle({
+	Name = "Instant Dig",
+	CurrentValue = false,
+	Flag = "ToggleInstantDig",
+	Callback = function(Value)
+	if Value then
+	plr:SetAttribute("InstantDig", true)
+	else
+	plr:SetAttribute("InstantDig", false)
+	end
+	end,
+})
+
+local ToggleAutoTreasureBag = Main:CreateToggle({
+	Name = "Auto Treasure Bag",
+	CurrentValue = false,
+	Flag = "ToggleAutoTreasureBag",
+	Callback = function(Value)
+	getgenv().autoTreasure = Value
+	
+	while autoTreasure do task.wait(0.1)
+	local args = {
+	"MoneyBag"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("TreasureEvent"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ToggleAutoCollectChest = Main:CreateToggle({
+	Name = "Auto Collect Chest",
+	CurrentValue = false,
+	Flag = "ToggleAutoCollectChest",
+	Callback = function(Value)
+	getgenv().autoChest = Value
+	
+	while autoChest do task.wait(0.1)
+	local args = {
+	"Chest"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("TreasureEvent"):FireServer(unpack(args))
+	end
+	end,
+})
+
+local ButtonGetDominusPet = Main:CreateButton({
+	Name = "Get Dominus Pet",
+	Callback = function()
+	local args = {
+	4
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinPrizeEvent"):FireServer(unpack(args))
+	end,
+})
+
+local function GetWorlds()
+    local worlds = {}
+    for _, v in ipairs(Workspace:GetChildren()) do
+        if v:IsA("Folder") and v:FindFirstChild("SurfacePart") then table.insert(worlds, v.Name) end
+    end
+    if #worlds == 0 then table.insert(worlds, nil) end
+    return worlds
+end
+local DropdownSelectWorldToTeleport = Teleports:CreateDropdown({
+	Name = "Select World To Teleport",
+	Options = GetWorlds(),
+	CurrentOption = nil,
+	Flag = "DropdownSelectWorldToTeleport",
+	Callback = function(Option)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentSelectWorld = Option or nil
+	end,
+})
+
+local ButtonTeleportToSelectedWorld = Teleports:CreateButton({
+	Name = "Teleport To Selected World",
+	Callback = function()
+	if getgenv().currentSelectWorld ~= nil then
+	for i,v in pairs(game.Workspace:GetChildren()) do
+	if v.Name == getgenv().currentSelectWorld then
+	hrp.CFrame = v.SurfacePart.CFrame + Vector3.new(0, 3.5, 0)
+	end
+	end
+	end
+	end,
+})
+
+Rayfield:LoadConfiguration()
