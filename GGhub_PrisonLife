@@ -1,53 +1,37 @@
--- Improved and fixed Luau script for "GG hub - Prison Life"
--- (No extra comments per your request; kept minimal and robust)
-
-local success, Rayfield = pcall(function()
-	return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
-if not success or not Rayfield then
-	error("Failed to load Rayfield UI library.")
-end
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
 local TS = game:GetService("TweenService")
 local Debris = game:GetService("Debris")
+local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
--- Character/humanoid state management
-local character, humanoid, hrp
-local defaultWalkSpeed = 24
-local defaultJumpPower =  50
-
-local function updateCharacterReferences(char)
-	character = char
-	humanoid = char and char:FindFirstChildWhichIsA("Humanoid")
-	hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if humanoid then
-		-- capture defaults safely
-		defaultWalkSpeed = humanoid.WalkSpeed or defaultWalkSpeed
-		if humanoid:GetAttribute("JumpPower") then
-			defaultJumpPower = humanoid.JumpPower or defaultJumpPower
-		else
-			defaultJumpPower = humanoid.JumpPower or defaultJumpPower
-		end
-	end
+local char, hum, hrp
+local function updateCharacter(c)
+    char = c or plr.Character or plr.CharacterAdded:Wait()
+    hum = char:WaitForChild("Humanoid")
+    hrp = char:WaitForChild("HumanoidRootPart")
 end
 
-if plr.Character then
-	updateCharacterReferences(plr.Character)
+if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
+plr.CharacterAdded:Connect(updateCharacter)
+
+local defaultWalkSpeed = 16
+local defaultJumpPower = 50
+getgenv().currentGetGun = nil
+
+getgenv().SendNotification = function(title, content, duration, image)
+if Rayfield then
+        Rayfield:Notify({
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
 end
-plr.CharacterAdded:Connect(function(char)
-	updateCharacterReferences(char)
-	-- ensure slider UI values reflect new humanoid
-	task.defer(function()
-		if humanoid and SliderWalkSpeed and SliderJumpPower then
-			pcall(function() SliderWalkSpeed:Set(humanoid.WalkSpeed or defaultWalkSpeed) end)
-			pcall(function() SliderJumpPower:Set(humanoid.JumpPower or defaultJumpPower) end)
-		end
-	end)
-end)
+end
 
 local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
 local gameName = gameInfo.Name
@@ -73,48 +57,219 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local Main = Window:CreateTab("Main", "rewind")
-local Teleports = Window:CreateTab("Teleports", "rewind")
-local Others = Window:CreateTab("Others", "rewind")
+local Main = Window:CreateTab("Main", 124620632231839)
+local Shop = Window:CreateTab("Shop", 11385419674)
+local Teleports = Window:CreateTab("Teleports", 6723742952)
+local Others = Window:CreateTab("Others", 12122755689)
 
--- Utility: safe WaitForChild chain
-local function safeGet(pathParts, root)
-	root = root or workspace
-	local cur = root
-	for _, part in ipairs(pathParts) do
-		if not cur then return nil end
-		cur = cur:FindFirstChild(part) or cur:WaitForChild(part, 5)
-		if not cur then return nil end
+local SliderWalkSpeed = Others:CreateSlider({
+	Name = "Change WalkSpeed",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultWalkSpeed,
+	Callback = function(v)
+		getgenv().currentWalkSpeed = v
+	end,
+})
+
+local InputWalkSpeed = Others:CreateInput({
+	Name = "Input WalkSpeed",
+	CurrentValue = tostring(defaultWalkSpeed),
+	PlaceholderText = tostring(defaultWalkSpeed),
+	RemoveTextAfterFocusLost = false,
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentWalkSpeed = num
+				SliderWalkSpeed:Set(num)
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
+		end
+	end,
+})
+
+task.spawn(function()
+	while task.wait(0.05) do
+		if hum then
+			pcall(function()
+				hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
+			end)
+		end
 	end
-	return cur
-end
+end)
 
--- Item pickup functions (use pcall to avoid errors if remote missing)
-local function invokeItemHandler(itemPathParts)
-	local remote = safeGet({"Remote"}, workspace)
-	local item = safeGet(itemPathParts, workspace)
-	if not remote or not item then return false, "Remote or item not found" end
-	local itemPickup = item:FindFirstChild("ITEMPICKUP") or item:WaitForChild("ITEMPICKUP", 2)
-	if not itemPickup then return false, "ITEMPICKUP not found" end
-	local success, err = pcall(function()
-		remote:WaitForChild("ItemHandler"):InvokeServer(itemPickup)
-	end)
-	return success, err
-end
+local SliderJumpPower = Others:CreateSlider({
+	Name = "Change JumpPower",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultJumpPower,
+	Callback = function(Value)
+		if hum then
+			hum.UseJumpPower = true
+			hum.JumpPower = Value
+		end
+	end,
+})
 
-local function GetAK()
-	return invokeItemHandler({"Prison_ITEMS", "giver", "AK-47"})
-end
+local InputJumpPower = Others:CreateInput({
+	Name = "Input JumpPower",
+	CurrentValue = tostring(defaultJumpPower),
+	PlaceholderText = tostring(defaultJumpPower),
+	RemoveTextAfterFocusLost = false,
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentJumpPower = num
+				SliderJumpPower:Set(num)
+				if hum then hum.JumpPower = num end
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid JumpPower value, use numbers!", 2)
+		end
+	end,
+})
 
-local function GetRemington()
-	return invokeItemHandler({"Prison_ITEMS", "giver", "Remington 870"})
+Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) InputWalkSpeed:Set(tostring(defaultWalkSpeed)) end end })
+Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) InputJumpPower:Set(tostring(defaultJumpPower)) end end })
+
+local jumpConnection
+Others:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "ToggleInfiniteJump",
+    Callback = function(Value)
+        if jumpConnection then jumpConnection:Disconnect() end
+        if Value then
+            jumpConnection = UserInputService.JumpRequest:Connect(function()
+                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end)
+        end
+    end,
+})
+
+Others:CreateButton({
+    Name = "Get TP Tool",
+    Callback = function()
+        local Backpack = plr:WaitForChild("Backpack")
+        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
+        local tool = Instance.new("Tool")
+        tool.Name = "TPTool"
+        tool.RequiresHandle = false
+        tool.CanBeDropped = false
+        tool.Parent = Backpack
+        local soundId = "rbxassetid://9118823109"
+        tool.Activated:Connect(function()
+            local mouse = plr:GetMouse()
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
+            local sound = Instance.new("Sound")
+            sound.SoundId = soundId
+            sound.Volume = 1
+            sound.Parent = root
+            sound:Play()
+            Debris:AddItem(sound, 2)
+            root.CFrame = CFrame.new(targetPos)
+        end)
+    end,
+})
+
+Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
+
+local ToggleNoClip = Others:CreateToggle({
+	Name = "No Clip",
+	CurrentValue = false,
+	Flag = "ToggleNoClip",
+	Callback = function(Value)
+		getgenv().noClip = Value
+		task.spawn(function()
+			while noClip do task.wait(0.001)
+				if char then
+					for _, v in pairs(char:GetChildren()) do
+						if (v:IsA("MeshPart") or v:IsA("Part")) then
+							v.CanCollide = not noClip
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+local original = {
+    Brightness = Lighting.Brightness,
+    ClockTime = Lighting.ClockTime,
+    FogEnd = Lighting.FogEnd,
+    Ambient = Lighting.Ambient,
+    OutdoorAmbient = Lighting.OutdoorAmbient
+}
+
+local fullBrightEnabled = false
+
+local ToggleFullBright = Others:CreateToggle({
+    Name = "Full Bright",
+    CurrentValue = false,
+    Flag = "ToggleFullBright",
+    Callback = function(state)
+        fullBrightEnabled = state
+        if fullBrightEnabled then
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 12
+            Lighting.FogEnd = 999999
+            Lighting.Ambient = Color3.new(1, 1, 1)
+            Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+        else
+            for prop, val in pairs(original) do
+                Lighting[prop] = val
+            end
+        end
+    end
+})
+
+local ButtonCopyYouConfig = Others:CreateButton({
+	Name = "Copy You Config",
+	Callback = function()
+		local configPath = "GG_hub/GG hub - Prison Life.rfld"
+		if isfile and readfile and isfile(configPath) then
+			local content = readfile(configPath)
+			if content and #content > 0 then
+				if setclipboard then
+					setclipboard(content)
+					SendNotification("Sucess", "Your settings have been copied!", 3)
+				else
+					SendNotification("GG hub", "Error: Your executor does not support copying text!", 3)
+				end
+			else
+				SendNotification("GG hub", "Your configuration is empty or corrupt!", 3)
+			end
+		else
+			SendNotification("GG hub", "Configuration file not found, try again!", 3)
+		end
 	end
--- Buttons / Controls
+})
+
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
 
 Main:CreateButton({
 	Name = "Become a Inmate",
 	Callback = function()
-	local args = {
+repeat task.wait(0.001)
+local args = {
 	game:GetService("Teams"):WaitForChild("Neutral")
 }
 workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
@@ -123,158 +278,26 @@ local args = {
 	game:GetService("Teams"):WaitForChild("Inmates")
 }
 workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
-	end,
-})
-
--- Sliders and default values will reference humanoid; create placeholders to be updated later
-local SliderWalkSpeed = Others:CreateSlider({
-   Name = "Change WalkSpeed",
-   Range = {0, 1000},
-   Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = humanoid.WalkSpeed or defaultWalkSpeed,
-   Flag = "SliderWalkSpeed",
-   Callback = function(Value)
-		if humanoid then
-			pcall(function() humanoid.WalkSpeed = Value end)
-		elseif plr.Character then
-			local h = plr.Character:FindFirstChildWhichIsA("Humanoid")
-			if h then pcall(function() h.WalkSpeed = Value end) end
-		end
-   end,
-})
-
-local SliderJumpPower = Others:CreateSlider({
-   Name = "Change JumpPower",
-   Range = {0, 500},
-   Increment = 1,
-   Suffix = "JumpPower",
-   CurrentValue = humanoid.JumpPower or defaultJumpPower,
-   Flag = "SliderJumpPower",
-   Callback = function(Value)
-		if humanoid then
-			pcall(function() humanoid.JumpPower = Value end)
-		elseif plr.Character then
-			local h = plr.Character:FindFirstChildWhichIsA("Humanoid")
-			if h then pcall(function() h.JumpPower = Value end) end
-		end
-   end,
-})
-
-Others:CreateButton({
-   Name = "Reset WalkSpeed",
-   Callback = function()
-		if humanoid then
-			pcall(function() humanoid.WalkSpeed = defaultWalkSpeed end)
-			pcall(function() SliderWalkSpeed:Set(defaultWalkSpeed) end)
-		end
-   end,
-})
-
-Others:CreateButton({
-   Name = "Reset JumpPower",
-   Callback = function()
-		if humanoid then
-			pcall(function() humanoid.JumpPower = defaultJumpPower end)
-			pcall(function() SliderJumpPower:Set(defaultJumpPower) end)
-		end
-   end,
-})
-
--- Infinite Jump: manage connection so we don't leak multiple connections
-local infiniteJumpConnection = nil
-Others:CreateToggle({
-   Name = "Infinite Jump",
-   CurrentValue = false,
-   Flag = "ToggleInfiniteJump",
-   Callback = function(Value)
-	   if Value then
-		   if infiniteJumpConnection and infiniteJumpConnection.Connected then return end
-		   infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
-			   local char = plr.Character
-			   if not char then return end
-			   local h = char:FindFirstChildWhichIsA("Humanoid")
-			   if h then
-				   pcall(function() h:ChangeState(Enum.HumanoidStateType.Jumping) end)
-			   end
-		   end)
-	   else
-		   if infiniteJumpConnection then
-			   pcall(function() infiniteJumpConnection:Disconnect() end)
-			   infiniteJumpConnection = nil
-		   else
-			   -- fallback: disconnect any JumpRequest connections (best-effort)
-			   for _, conn in pairs(getconnections(UserInputService.JumpRequest or {})) do
-				   pcall(function() conn:Disconnect() end)
-			   end
-		   end
-	   end
-   end,
-})
-
-Others:CreateButton({
-   Name = "Get TP Tool",
-   Callback = function()
-		local player = plr
-		if not player then return end
-		local backpack = player:WaitForChild("Backpack")
-		if backpack:FindFirstChild("TPTool") then
-			backpack.TPTool:Destroy()
-		end
-
-		local tool = Instance.new("Tool")
-		tool.Name = "TPTool"
-		tool.RequiresHandle = false
-		tool.CanBeDropped = false
-		tool.Parent = backpack
-
-		local soundId = "rbxassetid://9118823109"
-
-		tool.Activated:Connect(function()
-			local mouse = player:GetMouse()
-			local character = player.Character
-			if not character then return end
-			local root = character:FindFirstChild("HumanoidRootPart")
-			if not root then return end
-
-			local targetPos = mouse.Hit and mouse.Hit.p or nil
-			if not targetPos then return end
-			targetPos = targetPos + Vector3.new(0, 3, 0)
-
-			local sound = Instance.new("Sound")
-			sound.SoundId = soundId
-			sound.Volume = 1
-			sound.Parent = root
-			sound:Play()
-			Debris:AddItem(sound, 2)
-
-			root.CFrame = CFrame.new(targetPos)
-		end)
-   end,
-})
-
-Others:CreateButton({
-	Name = "Force Reset",
-	Callback = function()
-		local char = plr.Character
-		local h = char and char:FindFirstChildWhichIsA("Humanoid")
-		if h then
-			pcall(function() h.Health = 0 end)
-		end
-	end,
+until plr.TeamColor == BrickColor.new("Bright orange")
+if plr.TeamColor == BrickColor.new("Bright orange") then
+plr.PlayerGui.Home.intro.Visible = false
+plr.PlayerGui.Home.hud.Visible = true
+plr.PlayerGui.Home.fadeFrame.Visible = false
+end
+end,
 })
 
 Main:CreateButton({
   Name = "Become a Criminal",
   Callback = function()
 	  local char = plr.Character
-	  local hroot = char and char:FindFirstChild("HumanoidRootPart")
+	  local hroot = hrp
 	  if hroot then
 		  local oldCFrame = hroot.CFrame
 		  pcall(function()
 			  hroot.CFrame = CFrame.new(-976, 109, 2054)
 		  end)
-		  task.wait(0.2)
+		  task.wait(0.15)
 		  pcall(function()
 			  if oldCFrame then hroot.CFrame = oldCFrame end
 		  end)
@@ -285,115 +308,115 @@ Main:CreateButton({
 Main:CreateButton({
    Name = "Become a Guard",
     Callback = function()
-    local args = {
+    repeat task.wait(0.001)
+local args = {
 	game:GetService("Teams"):WaitForChild("Neutral")
 }
 workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
 task.wait()
-		local args = {
+local args = {
 	game:GetService("Teams"):WaitForChild("Guards")
 }
 workspace:WaitForChild("Remote"):WaitForChild("TeamEvent"):FireServer(unpack(args))
+until plr.TeamColor == BrickColor.new("Bright blue")
+if plr.TeamColor == BrickColor.new("Bright blue") then
+plr.PlayerGui.Home.intro.Visible = false
+plr.PlayerGui.Home.hud.Visible = true
+plr.PlayerGui.Home.fadeFrame.Visible = false
+end
     end,
 })
 
 Teleports:CreateButton({
-   Name = "teleport to the Criminals' base",
+   Name = "Teleport To Criminals' base",
    Callback = function()
 		local char = plr.Character
-		local hroot = char and char:FindFirstChild("HumanoidRootPart")
+		local hroot = hrp
 		if hroot then pcall(function() hroot.CFrame = CFrame.new(-921, 95, 2140) end) end
    end,
 })
 
 Teleports:CreateButton({
-   Name = "teleport to the Prison Fence",
+   Name = "Teleport To Prison Fence",
    Callback = function()
 		local char = plr.Character
-		local hroot = char and char:FindFirstChild("HumanoidRootPart")
+		local hroot = hrp
 		if hroot then pcall(function() hroot.CFrame = CFrame.new(856, 125, 2591) end) end
    end,
 })
 
 Teleports:CreateButton({
-   Name = "teleport to the Prison Saddle",
+   Name = "Teleport To Prison Saddle",
    Callback = function()
 		local char = plr.Character
-		local hroot = char and char:FindFirstChild("HumanoidRootPart")
+		local hroot = hrp
 		if hroot then pcall(function() hroot.CFrame = CFrame.new(918, 100, 2473) end) end
    end,
 })
 
 Teleports:CreateButton({
-   Name = "teleport to the City",
+   Name = "Teleport To City",
    Callback = function()
 		local char = plr.Character
-		local hroot = char and char:FindFirstChild("HumanoidRootPart")
+		local hroot = hrp
 		if hroot then pcall(function() hroot.CFrame = CFrame.new(-324, 54, 1714) end) end
    end,
 })
 
-Main:CreateButton({
-   	Name = "Get AK-47",
-   Callback = function()
-		local char = plr.Character
-		local hroot = char and char:FindFirstChild("HumanoidRootPart")
-		if not hroot then return end
-		local oldCFrame = hroot.CFrame
-		pcall(function() hroot.CFrame = CFrame.new(-941, 94, 2056) end)
-		task.wait(0.1)
-		local ok, err = GetAK()
-		task.wait(0.2)
-		local hasAK = plr:FindFirstChild("Backpack") and plr.Backpack:FindFirstChild("AK-47") or (plr.Character and plr.Character:FindFirstChild("AK-47"))
-		if hasAK then
-			task.wait(0.15)
-			if oldCFrame and hroot then pcall(function() hroot.CFrame = oldCFrame end) end
-		else
-			-- try again once
-			invokeItemHandler({"Prison_ITEMS", "giver", "AK-47"})
-			task.wait(0.15)
-			if oldCFrame and hroot then pcall(function() hroot.CFrame = oldCFrame end) end
-		end
-   end,
-})
-
-Main:CreateButton({
-   	Name = "Get Remington",
-   Callback = function()
-		local char = plr.Character
-		local hroot = char and char:FindFirstChild("HumanoidRootPart")
-		if not hroot then return end
-		local oldCFrame = hroot.CFrame
-		pcall(function() hroot.CFrame = CFrame.new(-953, 94, 2056) end)
-		task.wait(0.1)
-		local ok, err = GetRemington()
-		task.wait(0.2)
-		local hasRem = plr:FindFirstChild("Backpack") and plr.Backpack:FindFirstChild("Remington 870") or (plr.Character and plr.Character:FindFirstChild("Remington 870"))
-		if hasRem then
-			task.wait(0.15)
-			if oldCFrame and hroot then pcall(function() hroot.CFrame = oldCFrame end) end
-		else
-			-- try again once
-			invokeItemHandler({"Prison_ITEMS", "giver", "Remington 870"})
-			task.wait(0.15)
-			if oldCFrame and hroot then pcall(function() hroot.CFrame = oldCFrame end) end
-		end
-   end,
-})
-
-Others:CreateButton({
-	Name = "Fly Gui",
-	Callback = function()
-		pcall(function()
-			loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
-		end)
+local DropdownSelectGunToGet = Shop:CreateDropdown({
+	Name = "Select Gun To Get",
+	Options = {"M9", "AK-47", "Remington 870", "M4A1"},
+	CurrentOption = nil,
+	Flag = "DropdownSelectGunToGet",
+	Callback = function(Option)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentGetGun = Option or nil
 	end,
 })
-return true
 
-local ButtonDestroyGui = Others:CreateButton({
-	Name = "Destroy Gui",
+local ButtonGetSelectedGun = Shop:CreateButton({
+	Name = "Get Selected Gun",
 	Callback = function()
-	Rayfield:Destroy()
+	if getgenv().currentGetGun ~= nil then
+	for i,v in pairs(game.Workspace:GetChildren()) do
+	if v.Name == getgenv().currentGetGun then
+	firetouchinterest(hrp, v, 0)
+	end
+	end
+	end
 	end,
 })
+
+local Button SpawnCarInYouLocation = Main:CreateButton({
+	Name = "Spawn Car In You Location(BETA)",
+	Callback = function()
+	local oldCFrame = hrp.CFrame
+	SendNotification("GG hub", "This function may not work correctly!", 2)
+	
+	hrp.CFrame = CFrame.new(-910, 95, 2157)
+	task.wait(0.1)
+	local args = {
+	workspace.Prison_ITEMS.buttons:GetChildren()[8]["Car Spawner"]
+}
+workspace:WaitForChild("Remote"):WaitForChild("ItemHandler"):InvokeServer(unpack(args))
+local args = {
+	workspace.Prison_ITEMS.buttons:GetChildren()[8]["Car Spawner"]
+}
+workspace:WaitForChild("Remote"):WaitForChild("ItemHandler"):InvokeServer(unpack(args))
+local args = {
+	workspace.Prison_ITEMS.buttons:GetChildren()[8]["Car Spawner"]
+}
+workspace:WaitForChild("Remote"):WaitForChild("ItemHandler"):InvokeServer(unpack(args))
+task.wait(0.45)
+if not workspace.CarContainer:FindFirstChild("Sedan") then
+hrp.CFrame = oldCFrame
+SendNotification("Error", "An error occurred, please try again!", 2)
+else
+hrp.CFrame = workspace.CarContainer:FindFirstChild("Sedan"):FindFirstChild("Body"):FindFirstChild("VehicleSeat").CFrame
+task.wait(0.8)
+hrp.CFrame = oldCFrame
+end
+	end,
+})
+
+Rayfield:LoadConfiguration()
