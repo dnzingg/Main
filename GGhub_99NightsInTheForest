@@ -52,11 +52,16 @@ local Window = Rayfield:CreateWindow({
 	}
 })
 
+local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Bring = Window:CreateTab("Bring", 10885655986)
 local Esp = Window:CreateTab("Esp", 120129574453255)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
+
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
 
 local currentWalkSpeed = defaultWalkSpeed
 local autoWalkSpeed = false
@@ -510,65 +515,6 @@ Esp:CreateToggle({
                         label.BackgroundTransparency = 1
                         label.Text = v.Name
                         label.TextColor3 = EspItemColor
-                        label.TextScaled = true
-                        label.Font = Enum.Font.FredokaOne
-                        label.Parent = gui
-
-                        local stroke = Instance.new("UIStroke")
-                        stroke.Thickness = 2.8
-                        stroke.Color = Color3.fromRGB(0, 0, 0)
-                        stroke.Transparency = 0
-                        stroke.Parent = label
-                    end
-                end
-            end
-        end)
-    end,
-})
-
-Rayfield:LoadConfiguration()   end
-                        end
-                    end
-                end
-
-                if not getgenv().autoEsp then break end
-
-                for _, v in pairs(folder:GetChildren()) do
-                    if v:IsA("Model") and not v:FindFirstChild("GG_Highlight") then
-                        local adornee = v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
-                        if not adornee then
-                            for _, part in ipairs(v:GetChildren()) do
-                                if part:IsA("BasePart") then
-                                    adornee = part
-                                    break
-                                end
-                            end
-                        end
-                        if not adornee then continue end
-
-                        local esp = Instance.new("Highlight")
-                        esp.Name = "GG_Highlight"
-                        esp.FillTransparency = 0.3
-                        esp.OutlineTransparency = 0
-                        esp.FillColor = EspCharacterColor
-                        esp.Adornee = v
-                        esp.Parent = v
-
-                        local gui = Instance.new("BillboardGui")
-                        gui.Name = "GG_Billboard"
-                        gui.AlwaysOnTop = true
-                        gui.MaxDistance = 5000
-                        gui.Size = UDim2.new(0, 120, 0, 25)
-                        gui.StudsOffset = Vector3.new(0, 6, 0)
-                        gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-                        gui.Adornee = adornee
-                        gui.Parent = adornee
-
-                        local label = Instance.new("TextLabel")
-                        label.Size = UDim2.new(1, 0, 1, 0)
-                        label.BackgroundTransparency = 1
-                        label.Text = v.Name
-                        label.TextColor3 = EspCharacterColor
                         label.TextScaled = true
                         label.Font = Enum.Font.FredokaOne
                         label.Parent = gui
