@@ -10,63 +10,85 @@ local Debris = game:GetService("Debris")
 
 local char, hum, hrp
 local function updateCharacter(c)
-    char = c or plr.Character or plr.CharacterAdded:Wait()
-    hum = char:WaitForChild("Humanoid")
-    hrp = char:WaitForChild("HumanoidRootPart")
+	char = c or plr.Character or plr.CharacterAdded:Wait()
+	hum = char:WaitForChild("Humanoid")
+	hrp = char:WaitForChild("HumanoidRootPart")
 end
-
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
 local defaultWalkSpeed = 16
 local defaultJumpPower = 50
-getgenv().currentSelectItem = nil
+getgenv().currentSelectItem, getgenv().currentSelectedCharacter = nil, nil
 
 getgenv().SendNotification = function(title, content, duration, image)
-if Rayfield then
-        Rayfield:Notify({
-   Title = title or "GG hub",
-   Content = content or "",
-   Duration = duration or 3,
-   Image = image or 5107182098,
-})
-end
+	if Rayfield then
+		Rayfield:Notify({
+			Title = title or "GG hub",
+			Content = content or "",
+			Duration = duration or 3,
+			Image = image or 5107182098,
+		})
+	end
 end
 
 local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
 local gameName = gameInfo.Name
+
 local Window = Rayfield:CreateWindow({
-    Name = "GG hub - " .. gameName,
-    Icon = 16570037140,
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "by DNzinGG",
-    ShowText = "GG hub",
-    Theme = "Amethyst",
-    ToggleUIKeybind = "K",
-    DisableRayfieldPrompts = true,
-   DisableBuildWarnings = true,
-    ConfigurationSaving = { Enabled = false, FolderName = "GG_hub", FileName = "GG hub - Modelo Teste" }
+	Name = "GG hub - " .. gameName,
+	Icon = 16570037140,
+	LoadingTitle = "Loading...",
+	LoadingSubtitle = "by DNzinGG",
+	ShowText = "GG hub",
+	Theme = "Amethyst",
+	ToggleUIKeybind = "K",
+	DisableRayfieldPrompts = true,
+	DisableBuildWarnings = true,
+	ConfigurationSaving = {
+		Enabled = true,
+		FolderName = "GG_hub",
+		FileName = "GG hub - 99 Nights In The Forest"
+	}
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
-local Bring = Window:CreateTab("Bring", 0)
+local Bring = Window:CreateTab("Bring", 10885655986)
 local Esp = Window:CreateTab("Esp", 120129574453255)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
+local currentWalkSpeed = defaultWalkSpeed
+local autoWalkSpeed = false
+
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultWalkSpeed,
 	Callback = function(v)
-		getgenv().currentWalkSpeed = v
+		currentWalkSpeed = v
+	end,
+})
+
+Others:CreateToggle({
+	Name = "Auto Apply WalkSpeed",
+	CurrentValue = false,
+	Flag = "ToggleAutoWalkSpeed",
+	Callback = function(state)
+		autoWalkSpeed = state
+		task.spawn(function()
+			while autoWalkSpeed do
+				task.wait(0.1)
+				if hum then hum.WalkSpeed = currentWalkSpeed end
+			end
+		end)
 	end,
 })
 
 local SliderJumpPower = Others:CreateSlider({
 	Name = "Change JumpPower",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultJumpPower,
 	Callback = function(Value)
@@ -82,45 +104,18 @@ Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum the
 
 local jumpConnection
 Others:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
-    Callback = function(Value)
-        if jumpConnection then jumpConnection:Disconnect() end
-        if Value then
-            jumpConnection = UserInputService.JumpRequest:Connect(function()
-                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
-                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-            end)
-        end
-    end,
-})
-
-Others:CreateButton({
-    Name = "Get TP Tool",
-    Callback = function()
-        local Backpack = plr:WaitForChild("Backpack")
-        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
-        local tool = Instance.new("Tool")
-        tool.Name = "TPTool"
-        tool.RequiresHandle = false
-        tool.CanBeDropped = false
-        tool.Parent = Backpack
-        local soundId = "rbxassetid://9118823109"
-        tool.Activated:Connect(function()
-            local mouse = plr:GetMouse()
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
-            local sound = Instance.new("Sound")
-            sound.SoundId = soundId
-            sound.Volume = 1
-            sound.Parent = root
-            sound:Play()
-            Debris:AddItem(sound, 2)
-            root.CFrame = CFrame.new(targetPos)
-        end)
-    end,
+	Name = "Infinite Jump",
+	CurrentValue = false,
+	Flag = "ToggleInfiniteJump",
+	Callback = function(Value)
+		if jumpConnection then jumpConnection:Disconnect() end
+		if Value then
+			jumpConnection = UserInputService.JumpRequest:Connect(function()
+				local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
+				if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+			end)
+		end
+	end,
 })
 
 Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
@@ -147,132 +142,217 @@ local ToggleNoClip = Others:CreateToggle({
 })
 
 local original = {
-    Brightness = Lighting.Brightness,
-    ClockTime = Lighting.ClockTime,
-    FogEnd = Lighting.FogEnd,
-    Ambient = Lighting.Ambient,
-    OutdoorAmbient = Lighting.OutdoorAmbient
+	Brightness = Lighting.Brightness,
+	ClockTime = Lighting.ClockTime,
+	FogEnd = Lighting.FogEnd,
+	Ambient = Lighting.Ambient,
+	OutdoorAmbient = Lighting.OutdoorAmbient
 }
 
 local fullBrightEnabled = false
-
-local ToggleFullBright = Others:CreateToggle({
-    Name = "Full Bright",
-    CurrentValue = false,
-    Flag = "ToggleFullBright",
-    Callback = function(state)
-        fullBrightEnabled = state
-        if fullBrightEnabled then
-            Lighting.Brightness = 2
-            Lighting.ClockTime = 12
-            Lighting.FogEnd = 999999
-            Lighting.Ambient = Color3.new(1, 1, 1)
-            Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-        else
-            for prop, val in pairs(original) do
-                Lighting[prop] = val
-            end
-        end
-    end
+Others:CreateToggle({
+	Name = "Full Bright",
+	CurrentValue = false,
+	Flag = "ToggleFullBright",
+	Callback = function(state)
+		fullBrightEnabled = state
+		task.spawn(function()
+			while fullBrightEnabled do
+				task.wait(0.1)
+				Lighting.Brightness = 2
+				Lighting.ClockTime = 12
+				Lighting.FogEnd = 999999
+				Lighting.Ambient = Color3.new(1, 1, 1)
+				Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+			end
+			for prop, val in pairs(original) do
+				Lighting[prop] = val
+			end
+		end)
+	end
 })
 
-local ButtonCopyYouConfig = Others:CreateButton({
+Others:CreateButton({
 	Name = "Copy You Config",
 	Callback = function()
-		local configPath = "GG_hub/GG hub - Modelo Teste.rfld"
+		local configPath = "GG_hub/GG hub - 99 Nights In The Forest.rfld"
 		if isfile and readfile and isfile(configPath) then
 			local content = readfile(configPath)
 			if content and #content > 0 then
 				if setclipboard then
 					setclipboard(content)
-					SendNotification("Sucess", "Your settings have been copied!", 3)
+					SendNotification("Success", "Your settings have been copied!", 3)
 				else
-					SendNotification("GG hub", "Error: Your executor does not support copying text!", 3)
+					SendNotification("GG hub", "Error: Executor does not support copying text!", 3)
 				end
 			else
 				SendNotification("GG hub", "Your configuration is empty or corrupt!", 3)
 			end
 		else
-			SendNotification("GG hub", "Configuration file not found, try again!", 3)
+			SendNotification("GG hub", "Configuration file not found!", 3)
 		end
 	end
 })
 
-local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
-local ButtonDestroyGui = Others:CreateButton({
+Others:CreateButton({
+	Name = "Anti Lag",
+	Callback = function()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))()
+	end
+})
+
+Others:CreateButton({
 	Name = "Destroy Gui",
 	Callback = function()
-	Rayfield:Destroy()
+		Rayfield:Destroy()
 	end,
 })
 
 local function GetItems()
-    local items = {}
-    local found = {}
-    if Workspace:FindFirstChild("Items") then
-        for _, v in pairs(Workspace.Items:GetChildren()) do
-            if v:IsA("Model") and not found[v.Name] then
-                found[v.Name] = true
-                table.insert(items, v.Name)
-            end
-        end
-    end
-    if #items == 0 then
-        table.insert(items, "No Items Found")
-    end
-    return items
+	local items, found = {}, {}
+	local folder = Workspace:FindFirstChild("Items")
+	if folder then
+		for _, v in pairs(folder:GetChildren()) do
+			if v:IsA("Model") and not found[v.Name] then
+				found[v.Name] = true
+				table.insert(items, v.Name)
+			end
+		end
+	end
+	if #items == 0 then table.insert(items, "No Items Found") end
+	return items
 end
 
 local DropdownSelectItemToBring = Bring:CreateDropdown({
-    Name = "Select Item To Bring",
-    Options = GetItems(),
-    CurrentOption = nil,
-    Flag = "DropdownSelectItemToBring",
-    Callback = function(Option)
-        if type(Option) == "table" then Option = Option[1] end
-        getgenv().currentSelectItem = Option or nil
-    end,
+	Name = "Select Item To Bring",
+	Options = GetItems(),
+	CurrentOption = nil,
+	Flag = "DropdownSelectItemToBring",
+	Callback = function(Option)
+		if type(Option) == "table" then Option = Option[1] end
+		getgenv().currentSelectItem = Option or nil
+	end,
 })
 
 Bring:CreateButton({
-    Name = "Refresh Item List",
-    Callback = function()
-        local newItems = GetItems()
-        DropdownSelectItemToBring:Refresh(newItems)
-        SendNotification("GG hub", "Item list refreshed successfully!", 2)
-    end,
+	Name = "Bring Selected Item",
+	Callback = function()
+						local selected = getgenv().currentSelectItem
+				if selected ~= "No Items Found" or selected ~= nil then
+					for _, v in pairs(Workspace.Items:GetChildren()) do
+						if v.Name == selected then
+							v.PrimaryPart.CFrame = hrp.CFrame
+							v.PrimaryPart.CFrame = hrp.CFrame
+							v.PrimaryPart.CFrame = hrp.CFrame
+					end
+				end
+		else
+			SendNotification("GG hub", "Please select an item first!", 2)
+		end
+	end,
 })
 
-local ButtonBringSelectedItem = Bring:CreateButton({
-    Name = "Bring Selected Item",
-    Callback = function()
-        local selected = getgenv().currentSelectItem
-        if selected and selected ~= "No Items Found" then
-            for _, v in pairs(Workspace.Items:GetChildren()) do
-                if v.Name == selected and v:IsA("Model") and v:FindFirstChild("PrimaryPart") then
-                    v.PrimaryPart.CFrame = hrp.CFrame
-                    task.wait(0.1)
-                end
-            end
-        else
-            SendNotification("GG hub", "Please select an item first!", 2)
-        end
-    end,
+Bring:CreateToggle({
+	Name = "Auto Bring Selected Item",
+	CurrentValue = false,
+	Flag = "ToggleAutoBringItem",
+	Callback = function(state)
+		getgenv().autoBringItem = state
+		task.spawn(function()
+			while autoBringItem do
+				task.wait(1)
+				local selected = getgenv().currentSelectItem
+				if selected ~= "No Items Found" or selected ~= nil then
+					for _, v in pairs(Workspace.Items:GetChildren()) do
+						if v.Name == selected then
+							v.PrimaryPart.CFrame = hrp.CFrame
+					end
+				end
+				else
+			SendNotification("GG hub", "Please select an item first!", 2)
+			end
+			end
+		end)
+	end,
 })
+
+-- Função para pegar personagens únicos
+local function GetCharacters()
+	local characters, found = {}, {}
+	local folder = Workspace:FindFirstChild("Characters")
+	if folder then
+		for _, v in pairs(folder:GetChildren()) do
+			if v:IsA("Model") and not found[v.Name] then
+				found[v.Name] = true
+				table.insert(characters, v.Name)
+			end
+		end
+	end
+	if #characters == 0 then table.insert(characters, "No Characters Found") end
+	return characters
+end
 
 local DropdownSelectCharacterToBring = Bring:CreateDropdown({
-	Name = "Select Character To Bring(In Development..)",
-	Options = nil,
+	Name = "Select Character To Bring(Not Working!)",
+	Options = GetCharacters(),
 	CurrentOption = nil,
 	Flag = "DropdownSelectCharacterToBring",
 	Callback = function(Option)
-	-- workspace.Characters
-end,
+		if type(Option) == "table" then Option = Option[1] end
+		getgenv().currentSelectedCharacter = Option or nil
+	end,
 })
 
-local EspCharacterColor = Color3.fromRGB(85, 255, 0)
+Bring:CreateButton({
+	Name = "Bring Selected Character(Not Working!)",
+	Callback = function()
+		local selected = getgenv().currentSelectedCharacter
+		if selected and selected ~= "No Characters Found" then
+			for _, v in pairs(Workspace.Characters:GetChildren()) do
+				if v.Name == selected and v:IsA("Model") and v:FindFirstChild("PrimaryPart") then
+					v.PrimaryPart.CFrame = hrp.CFrame
+				end
+			end
+		else
+			SendNotification("GG hub", "Please select a character first!", 2)
+		end
+	end,
+})
 
-local ColorPickerEspCharacterColor = Main:CreateColorPicker({
+Bring:CreateToggle({
+	Name = "Auto Bring Selected Character(Not Working!)",
+	CurrentValue = false,
+	Flag = "ToggleAutoBringCharacter",
+	Callback = function(state)
+		getgenv().autoBringCharacter = state
+		task.spawn(function()
+			while autoBringCharacter do
+				task.wait(1)
+				local selected = getgenv().currentSelectedCharacter
+				if selected and selected ~= "No Characters Found" then
+					for _, v in pairs(Workspace.Characters:GetChildren()) do
+						if v.Name == selected and v:IsA("Model") and v:FindFirstChild("PrimaryPart") then
+							v.PrimaryPart.CFrame = hrp.CFrame
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+Bring:CreateButton({
+	Name = "Refresh Items & Characters",
+	Callback = function()
+		DropdownSelectItemToBring:Refresh(GetItems())
+		DropdownSelectCharacterToBring:Refresh(GetCharacters())
+		SendNotification("GG hub", "Dropdowns have been refreshed!", 2)
+	end
+})
+
+local EspCharacterColor = Color3.fromRGB(255, 0, 0)
+
+local ColorPickerEspCharacterColor = Esp:CreateColorPicker({
     Name = "ESP Character Color",
     Color = EspCharacterColor,
     Callback = function(Value)
@@ -280,7 +360,7 @@ local ColorPickerEspCharacterColor = Main:CreateColorPicker({
     end,
 })
 
-Main:CreateToggle({
+Esp:CreateToggle({
     Name = "Auto Esp Characters",
     CurrentValue = false,
     Flag = "ToggleAutoEspCharacters",
@@ -300,6 +380,153 @@ Main:CreateToggle({
                             if child:IsA("BillboardGui") and child.Name == "GG_Billboard" then
                                 child:Destroy()
                             end
+                        end
+                    end
+                end
+
+                if not getgenv().autoEsp then break end
+
+                for _, v in pairs(folder:GetChildren()) do
+                    if v:IsA("Model") and not v:FindFirstChild("GG_Highlight") then
+                        local adornee = v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
+                        if not adornee then
+                            for _, part in pairs(v:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    adornee = part
+                                    break
+                                end
+                            end
+                        end
+                        if not adornee then continue end
+
+                        local esp = Instance.new("Highlight")
+                        esp.Name = "GG_Highlight"
+                        esp.FillTransparency = 0.3
+                        esp.OutlineTransparency = 0
+                        esp.FillColor = EspCharacterColor
+                        esp.Adornee = v
+                        esp.Parent = v
+
+                        local gui = Instance.new("BillboardGui")
+                        gui.Name = "GG_Billboard"
+                        gui.AlwaysOnTop = true
+                        gui.MaxDistance = 5000
+                        gui.Size = UDim2.new(0, 120, 0, 25)
+                        gui.StudsOffset = Vector3.new(0, 6, 0)
+                        gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+                        gui.Adornee = adornee
+                        gui.Parent = adornee
+
+                        local label = Instance.new("TextLabel")
+                        label.Size = UDim2.new(1, 0, 1, 0)
+                        label.BackgroundTransparency = 1
+                        label.Text = v.Name
+                        label.TextColor3 = EspCharacterColor
+                        label.TextScaled = true
+                        label.Font = Enum.Font.FredokaOne
+                        label.Parent = gui
+
+                        local stroke = Instance.new("UIStroke")
+                        stroke.Thickness = 2.8
+                        stroke.Color = Color3.fromRGB(0, 0, 0)
+                        stroke.Transparency = 0
+                        stroke.Parent = label
+                    end
+                end
+            end
+        end)
+    end,
+})
+
+local EspItemColor = Color3.fromRGB(85, 255, 0)
+
+local ColorPickerEspItemColor = Esp:CreateColorPicker({
+    Name = "ESP Item Color",
+    Color = EspItemColor,
+    Callback = function(Value)
+        EspItemColor = Value
+    end,
+})
+
+Esp:CreateToggle({
+    Name = "Auto Esp Items",
+    CurrentValue = false,
+    Flag = "ToggleAutoEspItems",
+    Callback = function(Value)
+        getgenv().autoEsp = Value
+        task.spawn(function()
+            while true do
+                task.wait(0.3)
+                local folder = workspace:FindFirstChild("Items")
+                if not folder then continue end
+
+                for _, v in pairs(folder:GetChildren()) do
+                    if not getgenv().autoEsp then
+                        if v:FindFirstChild("GG_Highlight") then v.GG_Highlight:Destroy() end
+                        if v:FindFirstChild("GG_Billboard") then v.GG_Billboard:Destroy() end
+                        for _, child in pairs(v:GetDescendants()) do
+                            if child:IsA("BillboardGui") and child.Name == "GG_Billboard" then
+                                child:Destroy()
+                            end
+                        end
+                    end
+                end
+
+                if not getgenv().autoEsp then break end
+
+                for _, v in pairs(folder:GetChildren()) do
+                    if v:IsA("Model") and not v:FindFirstChild("GG_Highlight") then
+                        local adornee = v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
+                        if not adornee then
+                            for _, part in pairs(v:GetChildren()) do
+                                if part:IsA("BasePart") then
+                                    adornee = part
+                                    break
+                                end
+                            end
+                        end
+                        if not adornee then continue end
+
+                        local esp = Instance.new("Highlight")
+                        esp.Name = "GG_Highlight"
+                        esp.FillTransparency = 0.3
+                        esp.OutlineTransparency = 0
+                        esp.FillColor = EspItemColor
+                        esp.Adornee = v
+                        esp.Parent = v
+
+                        local gui = Instance.new("BillboardGui")
+                        gui.Name = "GG_Billboard"
+                        gui.AlwaysOnTop = true
+                        gui.MaxDistance = 5000
+                        gui.Size = UDim2.new(0, 120, 0, 25)
+                        gui.StudsOffset = Vector3.new(0, 6, 0)
+                        gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+                        gui.Adornee = adornee
+                        gui.Parent = adornee
+
+                        local label = Instance.new("TextLabel")
+                        label.Size = UDim2.new(1, 0, 1, 0)
+                        label.BackgroundTransparency = 1
+                        label.Text = v.Name
+                        label.TextColor3 = EspItemColor
+                        label.TextScaled = true
+                        label.Font = Enum.Font.FredokaOne
+                        label.Parent = gui
+
+                        local stroke = Instance.new("UIStroke")
+                        stroke.Thickness = 2.8
+                        stroke.Color = Color3.fromRGB(0, 0, 0)
+                        stroke.Transparency = 0
+                        stroke.Parent = label
+                    end
+                end
+            end
+        end)
+    end,
+})
+
+Rayfield:LoadConfiguration()   end
                         end
                     end
                 end
