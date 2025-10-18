@@ -31,6 +31,9 @@ local defaultWalkSpeed = 20
 local defaultJumpPower = 50
 getgenv().plrCurrentWorld = nil
 getgenv().currentSelectWorld = nil
+getgenv().currentSelectedPet = nil
+getgenv().quantityPet = 20
+getgenv().selectedMethodSpin = nil
 
 GetCurrentPlayerWorld()
 
@@ -69,6 +72,20 @@ local Others = Window:CreateTab("Others", 12122755689)
 local SectionInfos = Info:CreateSection("Infos")
 Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
 local SectionUpdateLog = Info:CreateSection("Update Log")
+Info:CreateParagraph({Title = "18/10/2025", Content = "Auto Get Dominus Pet(Main)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "Auto Win(Main)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "Auto Upgrade Selected Pet(Shop)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "Auto Spin Wheel With Method(Shop)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "Infinite Jetpack Fuel(Main)"})
+
+for _,v in pairs(game.Workspace:GetChildren()) do
+if v:IsA("Folder") and v:FindFirstChild("Spawns") then
+local number = v.Name:match("^World(%d+)$")
+if number == plr.CurrentWorld.Value then
+getgenv().plrWorld = v
+end
+end
+end
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
@@ -163,33 +180,6 @@ Others:CreateToggle({
     end,
 })
 
-Others:CreateButton({
-    Name = "Get TP Tool",
-    Callback = function()
-        local Backpack = plr:WaitForChild("Backpack")
-        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
-        local tool = Instance.new("Tool")
-        tool.Name = "TPTool"
-        tool.RequiresHandle = false
-        tool.CanBeDropped = false
-        tool.Parent = Backpack
-        local soundId = "rbxassetid://9118823109"
-        tool.Activated:Connect(function()
-            local mouse = plr:GetMouse()
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
-            local sound = Instance.new("Sound")
-            sound.SoundId = soundId
-            sound.Volume = 1
-            sound.Parent = root
-            sound:Play()
-            Debris:AddItem(sound, 2)
-            root.CFrame = CFrame.new(targetPos)
-        end)
-    end,
-})
-
 Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
 Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
 
@@ -267,6 +257,19 @@ local ToggleInstantDig = Main:CreateToggle({
 	end,
 })
 
+local ToggleInfiniteJetpackFuel = Main:CreateToggle({
+	Name = "Infinite Jetpack Fuel",
+	CurrentValue = false,
+	Flag = "ToggleInfiniteJetpackFuel",
+	Callback = function(Value)
+	if Value then
+	plr:SetAttribute("InfiniteFuel", true)
+	else
+	plr:SetAttribute("InfiniteFuel", false)
+	end
+	end,
+})
+
 local ToggleAutoTreasureBag = Main:CreateToggle({
 	Name = "Auto Treasure Bag",
 	CurrentValue = false,
@@ -309,6 +312,28 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinP
 	end,
 })
 
+local ToggleAutoGetDominusPet = Main:CreateToggle({
+	Name = "Auto Get Dominus Pet",
+	CurrentValue = false,
+	Flag = "ToggleAutoGetDominusPet",
+	Callback = function(Value)
+	getgenv().autoGet = Value
+	
+	if Value then
+	local args = {
+	4
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinPrizeEvent"):FireServer(unpack(args))
+	end
+	while autoGet do task.wait(3)
+	local args = {
+	4
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinPrizeEvent"):FireServer(unpack(args))
+	end
+	end,
+})
+
 local function GetWorlds()
     local worlds = {}
     for _, v in ipairs(Workspace:GetChildren()) do
@@ -338,6 +363,169 @@ local ButtonTeleportToSelectedWorld = Teleports:CreateButton({
 	end
 	end
 	end
+	end,
+})
+
+local ToggleAutoWin = Main:CreateToggle({
+	Name = "Auto Win",
+	CurrentValue = false,
+	Flag = "ToggleAutoWin",
+	Callback = function(Value)
+	getgenv().autoWin = Value
+	
+	if Value then
+	hrp.CFrame = plrWorld.WinPart.CFrame + Vector3.new(0, 50, 0)
+	end
+	while autoWin do task.wait(10.5)
+	hrp.CFrame = plrWorld.WinPart.CFrame + Vector3.new(0, 50, 0)
+	end
+	end,
+})
+
+local function GetPlayerPets()
+	local pets, found = {}, {}
+	local folder = plr.Pets
+	if folder then
+		for _, v in pairs(folder:GetChildren()) do
+			if v:IsA("StringValue") and not found[v.Name] then
+				found[v.Name] = true
+				table.insert(pets, v.Name)
+			end
+		end
+	end
+	if #pets == 0 then table.insert(pets, nil) end
+	return pets
+end
+local DropdownSelectPetToUpgrade = Shop:CreateDropdown({
+	Name = "Select Pet To Upgrade",
+	Options = GetPlayerPets(),
+	CurrentOption = nil,
+	Callback = function(Option)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentSelectedPet = Option or nil
+	end,
+})
+
+Shop:CreateButton({
+	Name = "Refresh Pet List",
+	Callback = function()
+		DropdownSelectPetToUpgrade:Refresh(GetPlayerPets())
+		SendNotification("GG hub", "Pet List have been refreshed!", 2)
+	end
+})
+
+local DropdownSelectQuantityToUpgrade = Shop:CreateDropdown({
+	Name = "Select Quantity To Upgrade",
+	Options = {"1","2","3","4","5"},
+	CurrentOption = "1",
+	Flag = "DropdownSelectQuantityToUpgrade",
+	Callback = function(Option)
+	if Option == "1" then
+	getgenv().quantityPet = 20
+	end
+	if Option == "2" then
+	getgenv().quantityPet = 40
+	end
+	if Option == "3" then
+	getgenv().quantityPet = 60
+	end
+	if Option == "4" then
+	getgenv().quantityPet = 80
+	end
+	if Option == "5" then
+	getgenv().quantityPet = 100
+	end
+	end,
+})
+
+local AutoUpgradeSelectedPet = Shop:CreateToggle({
+	Name = "Auto Upgrade Selected Pet",
+	CurrentValue = false,
+	Flag = "AutoUpgradeSelectedPet",
+	Callback = function(Value)
+	getgenv().autoUpgrade = Value
+	
+	if Value then
+	for _,v in pairs(plr.Pets:GetChildren()) do
+	if v.Name == getgenv().currentSelectedPet then
+	local args = {
+	tostring(v.Name),
+	getgenv().quantityPet
+}
+game:GetService("ReplicatedStorage"):WaitForChild("PetRemotes"):WaitForChild("GoldPetCraftEvent"):FireServer(unpack(args))
+	end
+	end
+	end
+	if getgenv().currentSelectedPet ~= nil then
+	while autoUpgrade do task.wait(3.5)
+	for _,v in pairs(plr.Pets:GetChildren()) do
+	if v.Name == getgenv().currentSelectedPet then
+	local args = {
+	tostring(v.Name),
+	getgenv().quantityPet
+}
+game:GetService("ReplicatedStorage"):WaitForChild("PetRemotes"):WaitForChild("GoldPetCraftEvent"):FireServer(unpack(args))
+	end
+	end
+	end
+	else
+	SendNotification("GG hub", "Select a pet to upgrade first!", 2)
+	end
+	end,
+})
+
+local DropdownSelectMethodToSpin = Shop:CreateDropdown({
+	Name = "Select Method To Spin",
+	Options = {
+		"350 Gems", "250M Money", "One Spin", "Dominus Pet", "875 Gems",
+		"100M Money", "3 Spins", "Random Pickaxe", "265 Gems", "10 Spins"
+	},
+	CurrentOption = nil,
+	Flag = "DropdownSelectMethodToSpin",
+	Callback = function(Option)
+		if type(Option) == "table" then Option = Option[1] end
+		local map = {
+			["350 Gems"] = 1,
+			["250M Money"] = 2,
+			["One Spin"] = 3,
+			["Dominus Pet"] = 4,
+			["875 Gems"] = 5,
+			["100M Money"] = 6,
+			["3 Spins"] = 7,
+			["Random Pickaxe"] = 8,
+			["265 Gems"] = 9,
+			["10 Spins"] = 10
+		}
+		getgenv().selectedMethodSpin = map[Option] or nil
+		if getgenv().selectedMethodSpin then
+			SendNotification("GG hub", "Selected: " .. Option, 2)
+		else
+			SendNotification("GG hub", "Invalid selection!", 2)
+		end
+	end,
+})
+
+local ToggleAutoSpinWheelWithMethod = Shop:CreateToggle({
+	Name = "Auto Spin Wheel With Method",
+	CurrentValue = false,
+	Flag = "ToggleAutoSpinWheelWithMethod",
+	Callback = function(Value)
+		getgenv().autoSpin = Value
+
+		if Value then
+			if not getgenv().selectedMethodSpin then
+				SendNotification("GG hub", "Select a method first!", 3)
+				return
+			end
+			task.spawn(function()
+				while getgenv().autoSpin do
+					task.wait(0.4)
+					pcall(function()
+						game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinPrizeEvent"):FireServer(getgenv().selectedMethodSpin)
+					end)
+				end
+			end)
+		end
 	end,
 })
 
