@@ -59,11 +59,14 @@ Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/.
 RememberJoins = true -- Set this to false to make them join the discord every time they load it up
 }})
 
+local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
--- Functions
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
 
 local SliderWalkSpeed = Others:CreateSlider({
 Name = "Change WalkSpeed",
