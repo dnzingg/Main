@@ -62,9 +62,14 @@ local Window = Rayfield:CreateWindow({
     ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - Steal A Vehicle" }
 })
 
+local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
+
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
 
 local function getTools()
     local tools = {}
@@ -82,6 +87,7 @@ end
 local DropdownSelectWeapon = Main:CreateDropdown({
     Name = "Select Weapon",
     Options = getTools(),
+    Flag = "DropdownSelectWeapon",
     CurrentOption = originalTool,
     MultipleOptions = false,
     Callback = function(Option)
@@ -305,14 +311,14 @@ local ToggleAutoAttackWithTool = Main:CreateToggle({
 	local backpack = plr:FindFirstChild("Backpack")
 	
 	if not autoAttack then
-	for _, v in ipairs(char:GetChildren()) do if v:IsA("Tool") then v:Deactivate() end end
+	for _, v in ipairs(char:GetChildren()) do if v:IsA("Tool") and v.Name == originalTool then v:Deactivate() end end
 	end
 	local function AttackTool()
     if backpack then
-        for _, v in ipairs(backpack:GetChildren()) do if v:IsA("Tool") then v.Parent = char end end
+        for _, v in ipairs(backpack:GetChildren()) do if v:IsA("Tool") and v.Name == originalTool then v.Parent = char end end
     end
     if char then
-    for _, v in ipairs(char:GetChildren()) do if v:IsA("Tool") then v:Activate() end end
+    for _, v in ipairs(char:GetChildren()) do if v:IsA("Tool") and v.Name == originalTool then v:Activate() end end
     end
     end
     
@@ -483,4 +489,14 @@ Main:CreateToggle({
     end,
 })
 
+local ButtonTeleportToYourBase = Teleports:CreateButton({
+	Name = "Teleport To Your Base",
+	Callback = function()
+	hum.Sit = true
+	hrp.CFrame = plrBase.Lock.CFrame + Vector3.new(0, 1.5, -35)
+	task.wait()
+	hum.Sit = false
+	end,
+})
+	
 Rayfield:LoadConfiguration()
