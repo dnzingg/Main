@@ -20,6 +20,7 @@ plr.CharacterAdded:Connect(updateCharacter)
 local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
 local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
 getgenv().startPosition, getgenv().finalPosition, getgenv().currentSelectBase = nil, nil, nil
+getgenv().originalTool = "Knife"
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -49,8 +50,34 @@ local Window = Rayfield:CreateWindow({
 
 local Main = Window:CreateTab("Main", 124620632231839)
 local Esp = Window:CreateTab("Esp", 120129574453255)
+local Visuals = Window:CreateTab("Visuals", 83251462099433)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
+
+local function getTools()
+    local tools = {}
+    local backpack = plr:FindFirstChild("Backpack")
+    if backpack then
+        for _, v in ipairs(backpack:GetChildren()) do if v:IsA("Tool") then table.insert(tools, v.Name) end end
+    end
+    if char then
+    for _, v in ipairs(char:GetChildren()) do if v:IsA("Tool") then table.insert(tools, v.Name) end end
+    end
+    if #tools == 0 then table.insert(tools, "Knife") end
+    return tools
+end
+
+local DropdownSelectWeapon = Main:CreateDropdown({
+    Name = "Select Tool",
+    Options = getTools(),
+    CurrentOption = originalTool,
+    MultipleOptions = false,
+    Callback = function(Option)
+        if type(Option) == "table" then Option = Option[1] end
+        originalTool = Option or "Knife"
+    end,
+})
+Main:CreateButton({ Name = "Refresh Tool", Callback = function() DropdownSelectWeapon:Refresh(getTools()) end })
 
 for _,v in pairs(game.Workspace.Bases:GetChildren()) do
 local owner = v:WaitForChild("PlotTeritory") or v:FindFirstChild("PlotTeritory2")
@@ -214,57 +241,60 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoLockBase = Main:CreateToggle({
 	Name = "Auto Lock Base",
 	CurrentValue = false,
-	Flag = "Auto Lock Base",
+	Flag = "ToggleAutoLockBase",
 	Callback = function(Value)
-	getgenv().autoLockBase = Value
-local originalCFrame = hrp.CFrame
+		getgenv().autoLockBase = Value
 
-task.spawn(function()
-while autoLockBase do task.wait(0.01)
-local timer = plrBase.LockgateButton.Button.LockTimer.Frame.TextLabel
-if timer.Text == "0s" or timer.Text == "Lock base" then
-hrp.CFrame = plrBase.LockgateButton.Part.CFrame + Vector3.new(0, 2, 0)
-task.wait(0.1)
-hrp.CFrame = originalCFrame
-else
-return
-end
-end
-end)
-	end,
-})
+		task.spawn(function()
+			while getgenv().autoLockBase do
+				task.wait(0.05)
+				pcall(function()
+					if not plrBase or not plrBase:FindFirstChild("LockgateButton") then return end
+					local button = plrBase.LockgateButton:FindFirstChild("Button")
+					if not button then return end
+					local timer = button:FindFirstChild("LockTimer") and button.LockTimer:FindFirstChild("Frame") and button.LockTimer.Frame:FindFirstChild("TextLabel")
+					if not timer then return end
 
-	Main:CreateToggle({
-		Name = "Auto Attack",
-		CurrentValue = false,
-		Flag = "ToggleAutoAttack",
-		Callback = function(Value)
-			getgenv().autoAttack = Value
-			
-			if Value then
-				task.spawn(function()
-					while getgenv().autoAttack do
-						task.wait(0.01)
-						pcall(function()
-							local backpack = plr:FindFirstChild("Backpack")
-							local character = plr.Character
-							local tool = nil
-							if character then tool = character:FindFirstChildOfClass("Tool") end
-							if not tool and backpack then
-								tool = backpack:FindFirstChildOfClass("Tool")
-								if tool then tool.Parent = character end
-							end
-task.wait(0.0001)
-									pcall(function()
-										if tool:FindFirstChild("Activate") or tool.Activate then
-											tool:Activate()
-									end
-									end)
-						end)
+					if timer.Text == "0s" or timer.Text == "Lock base" then
+						local args = {
+							{
+								button,
+								"\022"
+							}
+						}
+						game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
 					end
 				end)
 			end
-		end,
+		end)
+	end,
+})
+
+Main:CreateToggle({
+	Name = "Auto Attack",
+	CurrentValue = false,
+	Flag = "ToggleAutoAttack",
+	Callback = function(Value)
+		getgenv().autoAttack = Value
+		
+		task.spawn(function()
+			while getgenv().autoAttack do
+				task.wait(0.1)
+				pcall(function()
+					if not char then return end
+					local tool = char:FindFirstChildOfClass("Tool") or plr.Backpack:FindFirstChild(originalTool)
+					if not tool then return end
+					if tool.Parent ~= char then
+						tool.Parent = char
+						task.wait(0.1)
+					end
+					if getgenv().autoAttack then
+						tool:Activate()
+					end
+				end)
+			end
+		end)
+	end,
 })
 
 local ButtonSetStartPosition = Main:CreateButton({
@@ -302,7 +332,7 @@ local ButtonTeleportToFinalPosition = Main:CreateButton({
 })
 
 local ToggleAutoCollectMoney = Main:CreateToggle({
-	Name = "Auto Collect Money(Not Working)",
+	Name = "Auto Collect Money",
 	CurrentValue = false,
 	Flag = "ToggleAutoCollectMoney",
 	Callback = function(Value)
@@ -310,7 +340,7 @@ local ToggleAutoCollectMoney = Main:CreateToggle({
 		
 		task.spawn(function()
 			while getgenv().autoCollect do
-				task.wait(0.7)
+				task.wait(1.3)
 				pcall(function()
 					if not plrBase or not plrBase:FindFirstChild("PlotSlots") then return end
 					
@@ -319,15 +349,12 @@ local ToggleAutoCollectMoney = Main:CreateToggle({
 							local button = v.ClaimButton:FindFirstChild("Button")
 							if button then
 								local args = {
-									{
-										button,
-										"\020"
-									}
-								}
-								game:GetService("ReplicatedStorage")
-									:WaitForChild("ncxyzero_bridgenet2-fork@1.1.5")
-									:WaitForChild("dataRemoteEvent")
-									:FireServer(unpack(args))
+	{
+	v.ClaimButton.Button,
+		"\023"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
 								task.wait(0.001)
 							end
 						end
@@ -477,14 +504,14 @@ local ToggleAutoRebirth = Main:CreateToggle({
 	{
 		{
 			"\001",
-			"\205(\224\199p\247Ez\174{\185P\026\192\243\a",
+			"\145F\213\242\"\023J(\159a\bM\187\144\228\169",
 			{}
 		},
-		"\v"
+		"\r"
 	}
 }
 game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-	end
+    end
 	end,
 })
 
@@ -503,17 +530,26 @@ local ToggleAutoWheelSpin = Main:CreateToggle({
 	{
 		{
 			"\001",
-			"x14\156F\172A\183\139\213\146\208\218\165\201\235",
+			"\154X\019\135\018\132J^\182*\031\249\225(\031<",
 			{}
 		},
-		"\""
+		"%"
 	}
 }
 game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-else
-return
 	end
 	end
+	end,
+})
+
+local GetAllTools = Visuals:CreateButton({
+	Name = "Get All Tools",
+	Callback = function()
+	for _,v in pairs(game:GetService("ReplicatedStorage").shared.model.Tools:GetChildren()) do
+if v:IsA("Tool") then
+v:Clone().Parent = plr.Backpack
+end
+end
 	end,
 })
 
