@@ -78,11 +78,16 @@ end
 
 if not Window then return end
 
+local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Aimbot = Window:CreateTab("Aimbot", 74133076168703)
 local Esp = Window:CreateTab("Esp", 120129574453255)
 local Others = Window:CreateTab("Others", 12122755689)
+
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
