@@ -17,8 +17,8 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
-local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
+local defaultWalkSpeed = 24
+local defaultJumpPower = 50
 getgenv().startPosition, getgenv().finalPosition, getgenv().currentSelectBase = nil, nil, nil
 getgenv().originalTool = "Knife"
 
@@ -48,11 +48,21 @@ local Window = Rayfield:CreateWindow({
     ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - RIP Brainrot" }
 })
 
+local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Esp = Window:CreateTab("Esp", 120129574453255)
 local Visuals = Window:CreateTab("Visuals", 83251462099433)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
+
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Visuals Tab"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Destroy All Bases Walls(Visual)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Get All Tools(Visuals)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Fix Bugs/Errors"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Select Tool(Main)"})
 
 local function getTools()
     local tools = {}
@@ -89,7 +99,7 @@ end
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultWalkSpeed,
 	Callback = function(v)
@@ -102,7 +112,6 @@ local InputWalkSpeed = Others:CreateInput({
 	CurrentValue = tostring(defaultWalkSpeed),
 	PlaceholderText = tostring(defaultWalkSpeed),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputWalkSpeed",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -129,7 +138,7 @@ end)
 
 local SliderJumpPower = Others:CreateSlider({
 	Name = "Change JumpPower",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultJumpPower,
 	Callback = function(Value)
@@ -145,7 +154,6 @@ local InputJumpPower = Others:CreateInput({
 	CurrentValue = tostring(defaultJumpPower),
 	PlaceholderText = tostring(defaultJumpPower),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputJumpPower",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -247,7 +255,7 @@ local ToggleAutoLockBase = Main:CreateToggle({
 
 		task.spawn(function()
 			while getgenv().autoLockBase do
-				task.wait(0.05)
+				task.wait(0.1)
 				pcall(function()
 					if not plrBase or not plrBase:FindFirstChild("LockgateButton") then return end
 					local button = plrBase.LockgateButton:FindFirstChild("Button")
@@ -550,6 +558,26 @@ if v:IsA("Tool") then
 v:Clone().Parent = plr.Backpack
 end
 end
+	end,
+})
+
+local ButtonDestroyAllBasesWalls = Visuals:CreateButton({
+	Name = "Destroy All Bases Walls",
+	Callback = function()
+	for _,v in pairs(game.Workspace.Bases:GetDescendants()) do
+	if v.Name == "GateMainCFrame" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
+	v:Destroy()
+	end
+	if v.Name == "PlotDecor" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
+	v:Destroy()
+	end
+	if v.Name == "Gate" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
+	v:Destroy()
+	end
+	if v.Name == "CollectPart" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
+	v:Destroy()
+	end
+	end
 	end,
 })
 
