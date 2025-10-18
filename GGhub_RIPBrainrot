@@ -2,9 +2,8 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
 local TS = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
-local Workspace = game:GetService("Workspace")
 local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local Debris = game:GetService("Debris")
 
@@ -15,42 +14,26 @@ local function updateCharacter(c)
     hrp = char:WaitForChild("HumanoidRootPart")
 end
 
-if plr.Character then 
-    updateCharacter(plr.Character) 
-else 
-    plr.CharacterAdded:Wait()
-    updateCharacter(plr.Character)
-end
-
+if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local plrBase
-for _, v in pairs(Workspace.Bases:GetDescendants()) do
-    if v:IsA("Model") and v:FindFirstChild("PlotTeritory") then
-        if v.PlotTeritory:GetAttribute("Player") == plr.Name then
-            plrBase = v
-        end
-    end
-end
-
-local defaultWalkSpeed = hum and hum.WalkSpeed or 16
-local defaultJumpPower = hum and hum.JumpPower or 50
+local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
+local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
 getgenv().startPosition, getgenv().finalPosition, getgenv().currentSelectBase = nil, nil, nil
 
 getgenv().SendNotification = function(title, content, duration, image)
-    if Rayfield then
+if Rayfield then
         Rayfield:Notify({
-            Title = title or "GG hub",
-            Content = content or "",
-            Duration = duration or 3,
-            Image = image or 5107182098,
-        })
-    end
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
+end
 end
 
 local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
 local gameName = gameInfo.Name
-
 local Window = Rayfield:CreateWindow({
     Name = "GG hub - " .. gameName,
     Icon = 16570037140,
@@ -60,7 +43,7 @@ local Window = Rayfield:CreateWindow({
     Theme = "Amethyst",
     ToggleUIKeybind = "K",
     DisableRayfieldPrompts = true,
-    DisableBuildWarnings = true,
+   DisableBuildWarnings = true,
     ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - RIP Brainrot" }
 })
 
@@ -69,103 +52,91 @@ local Esp = Window:CreateTab("Esp", 120129574453255)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
--- WalkSpeed
+for _,v in pairs(game.Workspace.Bases:GetChildren()) do
+local owner = v:WaitForChild("PlotTeritory") or v:FindFirstChild("PlotTeritory2")
+local attribute = owner:GetAttribute("Player")
+if owner and attribute == plr.Name or attribute == plr then
+plrBase = v
+end
+end
+
 local SliderWalkSpeed = Others:CreateSlider({
-    Name = "Change WalkSpeed",
-    Range = {0, 1000},
-    Increment = 5,
-    CurrentValue = defaultWalkSpeed,
-    Callback = function(v)
-        getgenv().currentWalkSpeed = v
-    end,
+	Name = "Change WalkSpeed",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultWalkSpeed,
+	Callback = function(v)
+		getgenv().currentWalkSpeed = v
+	end,
 })
 
 local InputWalkSpeed = Others:CreateInput({
-    Name = "Input WalkSpeed",
-    CurrentValue = tostring(defaultWalkSpeed),
-    PlaceholderText = tostring(defaultWalkSpeed),
-    RemoveTextAfterFocusLost = false,
-    Callback = function(Text)
-        local num = tonumber(Text)
-        if num then
-            if num <= 1000 then
-                getgenv().currentWalkSpeed = num
-            else
-                SendNotification("GG hub", "The maximum value is 1000!", 2)
-            end
-        else
-            SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
-        end
-    end,
+	Name = "Input WalkSpeed",
+	CurrentValue = tostring(defaultWalkSpeed),
+	PlaceholderText = tostring(defaultWalkSpeed),
+	RemoveTextAfterFocusLost = false,
+	Flag = "InputWalkSpeed",
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentWalkSpeed = num
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
+		end
+	end,
 })
 
 task.spawn(function()
-    while task.wait(0.05) do
-        if hum then
-            pcall(function()
-                hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
-            end)
-        end
-    end
+	while task.wait(0.05) do
+		if hum then
+			pcall(function()
+				hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
+			end)
+		end
+	end
 end)
 
--- JumpPower
 local SliderJumpPower = Others:CreateSlider({
-    Name = "Change JumpPower",
-    Range = {0, 1000},
-    Increment = 5,
-    CurrentValue = defaultJumpPower,
-    Callback = function(Value)
-        if hum then
-            hum.UseJumpPower = true
-            hum.JumpPower = Value
-        end
-    end,
+	Name = "Change JumpPower",
+	Range = {0, 1000},
+	Increment = 5,
+	CurrentValue = defaultJumpPower,
+	Callback = function(Value)
+		if hum then
+			hum.UseJumpPower = true
+			hum.JumpPower = Value
+		end
+	end,
 })
 
 local InputJumpPower = Others:CreateInput({
-    Name = "Input JumpPower",
-    CurrentValue = tostring(defaultJumpPower),
-    PlaceholderText = tostring(defaultJumpPower),
-    RemoveTextAfterFocusLost = false,
-    Callback = function(Text)
-        local num = tonumber(Text)
-        if num then
-            if num <= 1000 then
-                getgenv().currentJumpPower = num
-                if hum then hum.JumpPower = num end
-            else
-                SendNotification("GG hub", "The maximum value is 1000!", 2)
-            end
-        else
-            SendNotification("GG hub", "Invalid JumpPower value, use numbers!", 2)
-        end
-    end,
+	Name = "Input JumpPower",
+	CurrentValue = tostring(defaultJumpPower),
+	PlaceholderText = tostring(defaultJumpPower),
+	RemoveTextAfterFocusLost = false,
+	Flag = "InputJumpPower",
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentJumpPower = num
+				if hum then hum.JumpPower = num end
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid JumpPower value, use numbers!", 2)
+		end
+	end,
 })
 
-Others:CreateButton({ 
-    Name = "Reset WalkSpeed", 
-    Callback = function() 
-        if hum then 
-            hum.WalkSpeed = defaultWalkSpeed 
-            SliderWalkSpeed:Set(defaultWalkSpeed) 
-            InputWalkSpeed:Set(tostring(defaultWalkSpeed)) 
-        end 
-    end 
-})
+Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) InputWalkSpeed:Set(tostring(defaultWalkSpeed)) end end })
+Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) InputJumpPower:Set(tostring(defaultJumpPower)) end end })
 
-Others:CreateButton({ 
-    Name = "Reset JumpPower", 
-    Callback = function() 
-        if hum then 
-            hum.JumpPower = defaultJumpPower 
-            SliderJumpPower:Set(defaultJumpPower) 
-            InputJumpPower:Set(tostring(defaultJumpPower)) 
-        end 
-    end 
-})
-
--- Infinite Jump
 local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
@@ -182,7 +153,6 @@ Others:CreateToggle({
     end,
 })
 
--- TP Tool
 Others:CreateButton({
     Name = "Get TP Tool",
     Callback = function()
@@ -210,115 +180,146 @@ Others:CreateButton({
     end,
 })
 
--- NoClip
-Others:CreateToggle({
-    Name = "No Clip",
-    CurrentValue = false,
-    Flag = "ToggleNoClip",
-    Callback = function(Value)
-        getgenv().noClip = Value
-        task.spawn(function()
-            while noClip do 
-                task.wait(0.001)
-                if char then
-                    for _, v in pairs(char:GetChildren()) do
-                        if v:IsA("MeshPart") or v:IsA("Part") then
-                            v.CanCollide = not noClip
-                        end
-                    end
-                end
-            end
-        end)
-    end,
+Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
+
+local ToggleNoClip = Others:CreateToggle({
+	Name = "No Clip",
+	CurrentValue = false,
+	Flag = "ToggleNoClip",
+	Callback = function(Value)
+		getgenv().noClip = Value
+		task.spawn(function()
+			while noClip do task.wait(0.001)
+				if char then
+					for _, v in pairs(char:GetChildren()) do
+						if (v:IsA("MeshPart") or v:IsA("Part")) then
+							v.CanCollide = not noClip
+						end
+					end
+				end
+			end
+		end)
+	end,
 })
 
--- Anti Lag
-Others:CreateButton({ 
-    Name = "Anti Lag", 
-    Callback = function() 
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() 
-    end,
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
 })
 
--- Full Bright
-local original = {
-    Brightness = Lighting.Brightness,
-    ClockTime = Lighting.ClockTime,
-    FogEnd = Lighting.FogEnd,
-    Ambient = Lighting.Ambient,
-    OutdoorAmbient = Lighting.OutdoorAmbient
-}
-local fullBrightEnabled = false
-Others:CreateToggle({
-    Name = "Full Bright",
-    CurrentValue = false,
-    Flag = "ToggleFullBright",
-    Callback = function(state)
-        fullBrightEnabled = state
-        if fullBrightEnabled then
-            Lighting.Brightness = 2
-            Lighting.ClockTime = 12
-            Lighting.FogEnd = 999999
-            Lighting.Ambient = Color3.new(1,1,1)
-            Lighting.OutdoorAmbient = Color3.new(1,1,1)
-        else
-            for prop, val in pairs(original) do
-                Lighting[prop] = val
-            end
-        end
-    end
+local ToggleAutoLockBase = Main:CreateToggle({
+	Name = "Auto Lock Base",
+	CurrentValue = false,
+	Flag = "Auto Lock Base",
+	Callback = function(Value)
+	getgenv().autoLockBase = Value
+local originalCFrame = hrp.CFrame
+
+task.spawn(function()
+while autoLockBase do task.wait(0.01)
+local timer = plrBase.LockgateButton.Button.LockTimer.Frame.TextLabel
+if timer.Text == "0s" or timer.Text == "Lock base" then
+hrp.CFrame = plrBase.LockgateButton.Part.CFrame + Vector3.new(0, 2, 0)
+task.wait(0.1)
+hrp.CFrame = originalCFrame
+else
+return
+end
+end
+end)
+	end,
 })
 
--- Copy Config
-Others:CreateButton({
-    Name = "Copy You Config",
-    Callback = function()
-        local configPath = "GG_hub/GG hub - RIP Brainrot.rfld"
-        if isfile and readfile and isfile(configPath) then
-            local content = readfile(configPath)
-            if content and #content > 0 then
-                if setclipboard then
-                    setclipboard(content)
-                    SendNotification("Success", "Your settings have been copied!", 3)
-                else
-                    SendNotification("GG hub", "Your executor does not support copying text!", 3)
-                end
-            else
-                SendNotification("GG hub", "Your configuration is empty or corrupt!", 3)
-            end
-        else
-            SendNotification("GG hub", "Configuration file not found, try again!", 3)
-        end
-    end
+	Main:CreateToggle({
+		Name = "Auto Attack",
+		CurrentValue = false,
+		Flag = "ToggleAutoAttack",
+		Callback = function(Value)
+			getgenv().autoAttack = Value
+			
+			if Value then
+				task.spawn(function()
+					while getgenv().autoAttack do
+						task.wait(0.01)
+						pcall(function()
+							local backpack = plr:FindFirstChild("Backpack")
+							local character = plr.Character
+							local tool = nil
+							if character then tool = character:FindFirstChildOfClass("Tool") end
+							if not tool and backpack then
+								tool = backpack:FindFirstChildOfClass("Tool")
+								if tool then tool.Parent = character end
+							end
+task.wait(0.0001)
+									pcall(function()
+										if tool:FindFirstChild("Activate") or tool.Activate then
+											tool:Activate()
+									end
+									end)
+						end)
+					end
+				end)
+			end
+		end,
 })
 
--- Destroy GUI
-Others:CreateButton({
-    Name = "Destroy Gui",
-    Callback = function()
-        Rayfield:Destroy()
-    end
+local ButtonSetStartPosition = Main:CreateButton({
+	Name = "Set Start Position",
+	Callback = function()
+	getgenv().startPosition = hrp.CFrame
+	SendNotification("Start Position:", tostring(hrp.Position), 2)
+	end,
 })
 
--- Destroy Other Bases
-Main:CreateButton({
-    Name = "Destroy All Others Players Base Walls",
-    Callback = function()
-        for _, base in ipairs(Workspace.Bases:GetChildren()) do
-            if base:IsA("Model") and base:FindFirstChild("PlotTeritory") then
-                local owner = base.PlotTeritory:GetAttribute("Player")
-                if owner and owner ~= plr.Name then
-                    if base:FindFirstChild("Gate") then base.Gate:Destroy() end
-                    if base:FindFirstChild("PlotDecor") then base.PlotDecor:Destroy() end
-                    if base:FindFirstChild("PlotTeritory") then base.PlotTeritory:Destroy() end
-                end
-            end
-        end
-        SendNotification("GG hub", "All others players base walls destroyed!", 2.5)
-    end
+local ButtonSetFinalPosition = Main:CreateButton({
+	Name = "Set Final Position",
+	Callback = function()
+	getgenv().finalPosition = hrp.CFrame
+	SendNotification("Final Position:", tostring(hrp.Position), 2)
+	end,
 })
 
-Rayfield:LoadConfiguration()
+local ButtonTeleportToStartPosition = Main:CreateButton({
+	Name = "Teleport To Start Position",
+	Callback = function()
+	if hrp and getgenv().startPosition ~= nil then
+	hrp.CFrame = getgenv().startPosition
+	end
+	end,
+})
+
+local ButtonTeleportToFinalPosition = Main:CreateButton({
+	Name = "Teleport To Final Position",
+	Callback = function()
+	if hrp and getgenv().finalPosition ~= nil then
+	hrp.CFrame = getgenv().finalPosition
+	end
+	end,
+})
+
+local ToggleAutoCollectMoney = Main:CreateToggle({
+	Name = "Auto Collect Money(Not Working)",
+	CurrentValue = false,
+	Flag = "ToggleAutoCollectMoney",
+	Callback = function(Value)
+		getgenv().autoCollect = Value
+		
+		task.spawn(function()
+			while getgenv().autoCollect do
+				task.wait(0.7)
+				pcall(function()
+					if not plrBase or not plrBase:FindFirstChild("PlotSlots") then return end
+					
+					for _, v in pairs(plrBase.PlotSlots:GetChildren()) do
+						if v:GetAttribute("Taken") == true and v:FindFirstChild("ClaimButton") then
+							local button = v.ClaimButton:FindFirstChild("Button")
+							if button then
+								local args = {
+									{
 										button,
 										"\020"
 									}
@@ -339,7 +340,7 @@ Rayfield:LoadConfiguration()
 
 local EspBrainrotColor = Color3.fromRGB(85, 255, 0)
 
-local ColorPickerEspBrainrotColor = Esp:CreateColorPicker({
+Esp:CreateColorPicker({
     Name = "ESP Brainrot Color",
     Color = EspBrainrotColor,
     Callback = function(Value)
@@ -428,7 +429,7 @@ Esp:CreateToggle({
 local ButtonTeleportToYouBase = Teleports:CreateButton({
 	Name = "Teleport To You Base",
 	Callback = function()
-	hrp.CFrame = plrBase.Union.CFrame + Vector3.new(0, 4.5, 0)
+	hrp.CFrame = plrBase.PlotTeritory.CFrame + Vector3.new(0, 4.5, 0)
 	end,
 })
 
@@ -457,7 +458,7 @@ local ButtonTeleportToSelectBase = Teleports:CreateButton({
 	if getgenv().currentSelectBase ~= nil then
 	for _, v in ipairs(game.Workspace.Bases:GetChildren()) do
         if v:IsA("Model") and v.Name == currentSelectBase then
-	hrp.CFrame = v.Union.CFrame + Vector3.new(0, 3.5, 0)
+	hrp.CFrame = v.PlotTeritory.CFrame + Vector3.new(0, 3.5, 0)
 	end
 	end
 	end
@@ -513,82 +514,6 @@ else
 return
 	end
 	end
-	end,
-})
-
-local original = {
-    Brightness = Lighting.Brightness,
-    ClockTime = Lighting.ClockTime,
-    FogEnd = Lighting.FogEnd,
-    Ambient = Lighting.Ambient,
-    OutdoorAmbient = Lighting.OutdoorAmbient
-}
-
-local fullBrightEnabled = false
-
-local ToggleFullBright = Others:CreateToggle({
-    Name = "Full Bright",
-    CurrentValue = false,
-    Flag = "ToggleFullBright",
-    Callback = function(state)
-        fullBrightEnabled = state
-        if fullBrightEnabled then
-            Lighting.Brightness = 2
-            Lighting.ClockTime = 12
-            Lighting.FogEnd = 999999
-            Lighting.Ambient = Color3.new(1, 1, 1)
-            Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-        else
-            for prop, val in pairs(original) do
-                Lighting[prop] = val
-            end
-        end
-    end
-})
-
-local ButtonCopyYouConfig = Others:CreateButton({
-	Name = "Copy You Config",
-	Callback = function()
-		local configPath = "GG_hub/GG hub - RIP Brainrot.rfld"
-		if isfile and readfile and isfile(configPath) then
-			local content = readfile(configPath)
-			if content and #content > 0 then
-				if setclipboard then
-					setclipboard(content)
-					SendNotification("Sucess", "Your settings have been copied!", 3)
-				else
-					SendNotification("GG hub", "Error: Your executor does not support copying text!", 3)
-				end
-			else
-				SendNotification("GG hub", "Your configuration is empty or corrupt!", 3)
-			end
-		else
-			SendNotification("GG hub", "Configuration file not found, try again!", 3)
-		end
-	end
-})
-	
-local ButtonDestroyGui = Others:CreateButton({
-	Name = "Destroy Gui",
-	Callback = function()
-	Rayfield:Destroy()
-	end,
-})
-
-local ButtonDestroyAllOthersPlayersBaseWalls = Main:CreateButton({
-	Name = "Destroy All Others Players Base Walls",
-	Callback = function()
-		for _, base in ipairs(workspace.Bases:GetChildren()) do
-			if base:IsA("Model") and base:FindFirstChild("PlotTeritory") then
-				local owner = base.PlotTeritory:GetAttribute("Player")
-				if owner and owner ~= plr.Name then
-					if base:FindFirstChild("Gate") then base.Gate:Destroy() end
-					if base:FindFirstChild("PlotDecor") then base.PlotDecor:Destroy() end
-					if base:FindFirstChild("PlotTeritory") then base.PlotTeritory:Destroy() end
-				end
-			end
-		end
-		SendNotification("GG hub", "All others players base walls destroyed!", 2.5)
 	end,
 })
 
