@@ -52,9 +52,14 @@ local Window = Rayfield:CreateWindow({
 	}
 })
 
+local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
+
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
