@@ -176,7 +176,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -221,7 +221,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -249,7 +249,7 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoLockBase = Main:CreateToggle({
 	Name = "Auto Lock Base",
 	CurrentValue = false,
-	Flag = "ToggleAutoLockBase",
+	Flag = "Auto Lock Base",
 	Callback = function(Value)
 		getgenv().autoLockBase = Value
 
@@ -281,7 +281,7 @@ local ToggleAutoLockBase = Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Attack",
 	CurrentValue = false,
-	Flag = "ToggleAutoAttack",
+	Flag = "Auto Attack",
 	Callback = function(Value)
 		getgenv().autoAttack = Value
 		
@@ -342,7 +342,7 @@ local ButtonTeleportToFinalPosition = Main:CreateButton({
 local ToggleAutoCollectMoney = Main:CreateToggle({
 	Name = "Auto Collect Money",
 	CurrentValue = false,
-	Flag = "ToggleAutoCollectMoney",
+	Flag = "Auto Collect Money",
 	Callback = function(Value)
 		getgenv().autoCollect = Value
 		
@@ -386,7 +386,7 @@ Esp:CreateColorPicker({
 Esp:CreateToggle({
     Name = "Auto Esp Brainrots From Road",
     CurrentValue = false,
-    Flag = "ToggleAutoEspBrainrotsFromRoad",
+    Flag = "Auto Esp Brainrots From Road",
     Callback = function(Value)
         getgenv().autoEsp = Value
         task.spawn(function()
@@ -480,7 +480,7 @@ local DropdownSelectBaseToTeleport = Teleports:CreateDropdown({
 	Name = "Select Base To Teleport",
 	Options = GetBases(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectBaseToTeleport",
+	Flag = "Select Base To Teleport",
 	Callback = function(Option)
 	if type(Option) == "table" then Option = Option[1] end
         getgenv().currentSelectBase = Option or nil
@@ -503,7 +503,7 @@ local ButtonTeleportToSelectBase = Teleports:CreateButton({
 local ToggleAutoRebirth = Main:CreateToggle({
 	Name = "Auto Rebirth",
 	CurrentValue = false,
-	Flag = "ToggleAutoRebirth",
+	Flag = "Auto Rebirth",
 	Callback = function(Value)
 	getgenv().autoRebirth = Value
 	
@@ -526,7 +526,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.
 local ToggleAutoWheelSpin = Main:CreateToggle({
 	Name = "Auto Wheel Spin",
 	CurrentValue = false,
-	Flag = "ToggleAutoWheelSpin",
+	Flag = "Auto Wheel Spin",
 	Callback = function(Value)
 	getgenv().autoSpin = Value
 	
