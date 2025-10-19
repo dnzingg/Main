@@ -79,7 +79,6 @@ local SliderWalkSpeed = Others:CreateSlider({
 Others:CreateToggle({
 	Name = "Auto Apply WalkSpeed",
 	CurrentValue = false,
-	Flag = "ToggleAutoWalkSpeed",
 	Callback = function(state)
 		autoWalkSpeed = state
 		task.spawn(function()
@@ -111,7 +110,7 @@ local jumpConnection
 Others:CreateToggle({
 	Name = "Infinite Jump",
 	CurrentValue = false,
-	Flag = "ToggleInfiniteJump",
+	Flag = "Infinite Jump",
 	Callback = function(Value)
 		if jumpConnection then jumpConnection:Disconnect() end
 		if Value then
@@ -129,7 +128,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -158,7 +157,7 @@ local fullBrightEnabled = false
 Others:CreateToggle({
 	Name = "Full Bright",
 	CurrentValue = false,
-	Flag = "ToggleFullBright",
+	Flag = "Full Bright",
 	Callback = function(state)
 		fullBrightEnabled = state
 		task.spawn(function()
@@ -227,12 +226,11 @@ local function GetItems()
 	if #items == 0 then table.insert(items, "No Items Found") end
 	return items
 end
-
 local DropdownSelectItemToBring = Bring:CreateDropdown({
 	Name = "Select Item To Bring",
 	Options = GetItems(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectItemToBring",
+	Flag = "Select Item To Bring",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		getgenv().currentSelectItem = Option or nil
@@ -260,7 +258,7 @@ Bring:CreateButton({
 Bring:CreateToggle({
 	Name = "Auto Bring Selected Item",
 	CurrentValue = false,
-	Flag = "ToggleAutoBringItem",
+	Flag = "Auto Bring Selected Item",
 	Callback = function(state)
 		getgenv().autoBringItem = state
 		task.spawn(function()
@@ -281,7 +279,6 @@ Bring:CreateToggle({
 	end,
 })
 
--- Função para pegar personagens únicos
 local function GetCharacters()
 	local characters, found = {}, {}
 	local folder = Workspace:FindFirstChild("Characters")
@@ -301,7 +298,7 @@ local DropdownSelectCharacterToBring = Bring:CreateDropdown({
 	Name = "Select Character To Bring(Not Working!)",
 	Options = GetCharacters(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectCharacterToBring",
+	Flag = "Select Character To Bring(Not Working!)",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		getgenv().currentSelectedCharacter = Option or nil
@@ -327,7 +324,7 @@ Bring:CreateButton({
 Bring:CreateToggle({
 	Name = "Auto Bring Selected Character(Not Working!)",
 	CurrentValue = false,
-	Flag = "ToggleAutoBringCharacter",
+	Flag = "Auto Bring Selected Character(Not Working!)",
 	Callback = function(state)
 		getgenv().autoBringCharacter = state
 		task.spawn(function()
@@ -368,7 +365,7 @@ local ColorPickerEspCharacterColor = Esp:CreateColorPicker({
 Esp:CreateToggle({
     Name = "Auto Esp Characters",
     CurrentValue = false,
-    Flag = "ToggleAutoEspCharacters",
+    Flag = "Auto Esp Characters",
     Callback = function(Value)
         getgenv().autoEsp = Value
         task.spawn(function()
@@ -456,7 +453,7 @@ local ColorPickerEspItemColor = Esp:CreateColorPicker({
 Esp:CreateToggle({
     Name = "Auto Esp Items",
     CurrentValue = false,
-    Flag = "ToggleAutoEspItems",
+    Flag = "Auto Esp Items",
     Callback = function(Value)
         getgenv().autoEsp = Value
         task.spawn(function()
