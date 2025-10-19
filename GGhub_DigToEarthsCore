@@ -87,48 +87,36 @@ end
 end
 end
 
+local currentWalkSpeed = defaultWalkSpeed
+local autoWalkSpeed = false
+
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultWalkSpeed,
 	Callback = function(v)
-		getgenv().currentWalkSpeed = v
+		currentWalkSpeed = v
 	end,
 })
 
-local InputWalkSpeed = Others:CreateInput({
-	Name = "Input WalkSpeed",
-	CurrentValue = tostring(defaultWalkSpeed),
-	PlaceholderText = tostring(defaultWalkSpeed),
-	RemoveTextAfterFocusLost = false,
-	Callback = function(Text)
-		local num = tonumber(Text)
-		if num then
-			if num <= 1000 then
-				getgenv().currentWalkSpeed = num
-			else
-				SendNotification("GG hub", "The maximum value is 1000!", 2)
+Others:CreateToggle({
+	Name = "Auto Apply WalkSpeed",
+	CurrentValue = false,
+	Callback = function(state)
+		autoWalkSpeed = state
+		task.spawn(function()
+			while autoWalkSpeed do
+				task.wait(0.1)
+				if hum then hum.WalkSpeed = currentWalkSpeed end
 			end
-		else
-			SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
-		end
+		end)
 	end,
 })
-
-task.spawn(function()
-	while task.wait(0.05) do
-		if hum then
-			pcall(function()
-				hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
-			end)
-		end
-	end
-end)
 
 local SliderJumpPower = Others:CreateSlider({
 	Name = "Change JumpPower",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultJumpPower,
 	Callback = function(Value)
@@ -161,22 +149,6 @@ local InputJumpPower = Others:CreateInput({
 
 Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) InputWalkSpeed:Set(tostring(defaultWalkSpeed)) end end })
 Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) InputJumpPower:Set(tostring(defaultJumpPower)) end end })
-
-local jumpConnection
-Others:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Flag = "Infinite Jump",
-    Callback = function(Value)
-        if jumpConnection then jumpConnection:Disconnect() end
-        if Value then
-            jumpConnection = UserInputService.JumpRequest:Connect(function()
-                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
-                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-            end)
-        end
-    end,
-})
 
 Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
 Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
@@ -524,6 +496,23 @@ local ToggleAutoSpinWheelWithMethod = Shop:CreateToggle({
 				end
 			end)
 		end
+	end,
+})
+
+local ToggleAutoSpinWheel = Shop:CreateToggle({
+	Name = "Auto Spin Wheel",
+	CurrentValue = false,
+	Flag = "Auto Spin Wheel",
+	Callback = function(Value)
+	getgenv().autoSpin = Value
+	
+	while autoSpin do task.wait(0.3)
+	game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinRequestEvent"):FireServer()
+	local args = {
+	math.random(1, 10)
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinPrizeEvent"):FireServer(unpack(args))
+	end
 	end,
 })
 
