@@ -71,7 +71,6 @@ local InputWalkSpeed = Others:CreateInput({
 	CurrentValue = tostring(defaultWalkSpeed),
 	PlaceholderText = tostring(defaultWalkSpeed),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputWalkSpeed",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -114,7 +113,6 @@ local InputJumpPower = Others:CreateInput({
 	CurrentValue = tostring(defaultJumpPower),
 	PlaceholderText = tostring(defaultJumpPower),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputJumpPower",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -137,7 +135,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -182,7 +180,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -212,7 +210,7 @@ local fullBrightEnabled = false
 local ToggleFullBright = Others:CreateToggle({
     Name = "Full Bright",
     CurrentValue = false,
-    Flag = "ToggleFullBright",
+    Flag = "Full Bright",
     Callback = function(state)
         fullBrightEnabled = state
         if fullBrightEnabled then
@@ -262,7 +260,7 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoCutTrees = Main:CreateToggle({
 	Name = "Auto Cut Trees",
 	CurrentValue = false,
-	Flag = "ToggleAutoCutTrees",
+	Flag = "Auto Cut Trees",
 	Callback = function(Value)
 	getgenv().autoCut = Value
 	
@@ -288,7 +286,7 @@ end
 local ToggleAutoCollectChests = Main:CreateToggle({
 	Name = "Auto Collect Chests",
 	CurrentValue = false,
-	Flag = "ToggleAutoCollectChests",
+	Flag = "Auto Collect Chests",
 	Callback = function(Value)
 	getgenv().autoChest = Value
 	
