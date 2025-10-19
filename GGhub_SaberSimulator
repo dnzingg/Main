@@ -109,7 +109,7 @@ local jumpConnection
 Others:CreateToggle({
 	Name = "Infinite Jump",
 	CurrentValue = false,
-	Flag = "ToggleInfiniteJump",
+	Flag = "Infinite Jump",
 	Callback = function(Value)
 		if jumpConnection then jumpConnection:Disconnect() end
 		if Value then
@@ -168,7 +168,7 @@ Others:CreateButton({
 Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -189,7 +189,7 @@ Others:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Swing",
 	CurrentValue = false,
-	Flag = "ToggleAutoSwing",
+	Flag = "Auto Swing",
 	Callback = function(Value)
 		getgenv().autoSwing = Value
 		task.spawn(function()
@@ -212,7 +212,7 @@ Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Sell Strength",
 	CurrentValue = false,
-	Flag = "ToggleAutoSellStrength",
+	Flag = "Auto Sell Strength",
 	Callback = function(Value)
 		getgenv().autoStrength = Value
 		task.spawn(function()
@@ -239,7 +239,7 @@ Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Crown",
 	CurrentValue = false,
-	Flag = "ToggleAutoCrown",
+	Flag = "Auto Crown",
 	Callback = function(Value)
 		getgenv().autoCrown = Value
 		task.spawn(function()
@@ -258,7 +258,7 @@ Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Koth",
 	CurrentValue = false,
-	Flag = "ToggleAutoKoth",
+	Flag = "Auto Koth",
 	Callback = function(Value)
 		getgenv().autoFlag = Value
 		task.spawn(function()
@@ -287,7 +287,7 @@ Teleports:CreateDropdown({
 	Name = "Select Location",
 	Options = GetLocations(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectLocation",
+	Flag = "Select Location",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		getgenv().currentLocation = Option or nil
@@ -327,7 +327,7 @@ Main:CreateDropdown({
 	Options = {"1"},
 	CurrentOption = nil,
 	MultipleOptions = false,
-	Flag = "DropdownSelectBoss",
+	Flag = "Select Boss",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		getgenv().currentBoss = Option or nil
@@ -337,7 +337,7 @@ Main:CreateDropdown({
 Main:CreateToggle({
 	Name = "Auto Kill Boss",
 	CurrentValue = false,
-	Flag = "ToggleAutoKillBoss",
+	Flag = "Auto Kill Boss",
 	Callback = function(Value)
 		getgenv().autoBoss = Value
 		task.spawn(function()
