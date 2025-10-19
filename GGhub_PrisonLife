@@ -148,7 +148,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -193,7 +193,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -223,7 +223,7 @@ local fullBrightEnabled = false
 local ToggleFullBright = Others:CreateToggle({
     Name = "Full Bright",
     CurrentValue = false,
-    Flag = "ToggleFullBright",
+    Flag = "Full Bright",
     Callback = function(state)
         fullBrightEnabled = state
         if fullBrightEnabled then
@@ -372,7 +372,7 @@ local DropdownSelectGunToGet = Shop:CreateDropdown({
 	Name = "Select Gun To Get",
 	Options = {"M9", "AK-47", "Remington 870", "M4A1"},
 	CurrentOption = nil,
-	Flag = "DropdownSelectGunToGet",
+	Flag = "Select Gun To Get",
 	Callback = function(Option)
 	if type(Option) == "table" then Option = Option[1] end
         getgenv().currentGetGun = Option or nil
@@ -399,7 +399,7 @@ local Button SpawnCarInYouLocation = Main:CreateButton({
 	SendNotification("GG hub", "This function may not work correctly!", 2)
 	
 	hrp.CFrame = CFrame.new(-910, 95, 2157)
-	task.wait(0.1)
+	task.wait(0.2)
 	local args = {
 	workspace.Prison_ITEMS.buttons:GetChildren()[8]["Car Spawner"]
 }
@@ -412,13 +412,13 @@ local args = {
 	workspace.Prison_ITEMS.buttons:GetChildren()[8]["Car Spawner"]
 }
 workspace:WaitForChild("Remote"):WaitForChild("ItemHandler"):InvokeServer(unpack(args))
-task.wait(0.45)
+task.wait(0.55)
 if not workspace.CarContainer:FindFirstChild("Sedan") then
 hrp.CFrame = oldCFrame
 SendNotification("Error", "An error occurred, please try again!", 2)
 else
 hrp.CFrame = workspace.CarContainer:FindFirstChild("Sedan"):FindFirstChild("Body"):FindFirstChild("VehicleSeat").CFrame
-task.wait(0.8)
+task.wait(0.85)
 hrp.CFrame = oldCFrame
 end
 	end,
