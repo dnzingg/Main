@@ -1,0 +1,386 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+local TS = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+
+local char, hum, hrp
+local function updateCharacter(c)
+    char = c or plr.Character or plr.CharacterAdded:Wait()
+    hum = char:WaitForChild("Humanoid")
+    hrp = char:WaitForChild("HumanoidRootPart")
+end
+
+if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
+plr.CharacterAdded:Connect(updateCharacter)
+
+local defaultWalkSpeed = 17.5
+local defaultJumpPower = 50
+getgenv().currentMap = "roblox hq"
+getgenv().currentDifficulty = "easy"
+getgenv().currentMorph = "Noob"
+getgenv().currentHealth = 10
+
+getgenv().SendNotification = function(title, content, duration, image)
+if Rayfield then
+        Rayfield:Notify({
+   Title = title or "GG hub",
+   Content = content or "",
+   Duration = duration or 3,
+   Image = image or 5107182098,
+})
+end
+end
+
+local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+local gameName = gameInfo.Name
+local Window = Rayfield:CreateWindow({
+    Name = "GG hub - " .. gameName,
+    Icon = 16570037140,
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by DNzinGG",
+    ShowText = "GG hub",
+    Theme = "Amethyst",
+    ToggleUIKeybind = "K",
+    DisableRayfieldPrompts = true,
+   DisableBuildWarnings = true,
+    ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - The Noob Experiment Battlefront" }
+})
+
+local Info = Window:CreateTab("Infos", 0)
+local Main = Window:CreateTab("Main", 124620632231839)
+local FarmSettings = Window:CreateTab("Farm Settings", 0)
+local Teleports = Window:CreateTab("Teleports", 6723742952)
+local Others = Window:CreateTab("Others", 12122755689)
+
+local SectionInfos = Info:CreateSection("Infos")
+Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
+local SectionUpdateLog = Info:CreateSection("Update Log")
+
+local SliderWalkSpeed = Others:CreateSlider({
+	Name = "Change WalkSpeed",
+	Range = {1, 1000},
+	Increment = 5,
+	CurrentValue = defaultWalkSpeed,
+	Callback = function(v)
+		getgenv().currentWalkSpeed = v
+	end,
+})
+
+local InputWalkSpeed = Others:CreateInput({
+	Name = "Input WalkSpeed",
+	CurrentValue = tostring(defaultWalkSpeed),
+	PlaceholderText = tostring(defaultWalkSpeed),
+	RemoveTextAfterFocusLost = false,
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentWalkSpeed = num
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid WalkSpeed value, use numbers!", 2)
+		end
+	end,
+})
+
+task.spawn(function()
+	while task.wait(0.05) do
+		if hum then
+			pcall(function()
+				hum.WalkSpeed = tonumber(getgenv().currentWalkSpeed) or defaultWalkSpeed
+			end)
+		end
+	end
+end)
+
+local SliderJumpPower = Others:CreateSlider({
+	Name = "Change JumpPower",
+	Range = {1, 1000},
+	Increment = 5,
+	CurrentValue = defaultJumpPower,
+	Callback = function(Value)
+		if hum then
+			hum.UseJumpPower = true
+			hum.JumpPower = Value
+		end
+	end,
+})
+
+local InputJumpPower = Others:CreateInput({
+	Name = "Input JumpPower",
+	CurrentValue = tostring(defaultJumpPower),
+	PlaceholderText = tostring(defaultJumpPower),
+	RemoveTextAfterFocusLost = false,
+	Callback = function(Text)
+		local num = tonumber(Text)
+		if num then
+			if num <= 1000 then
+				getgenv().currentJumpPower = num
+				if hum then hum.JumpPower = num end
+			else
+				SendNotification("GG hub", "The maximum value is 1000!", 2)
+			end
+		else
+			SendNotification("GG hub", "Invalid JumpPower value, use numbers!", 2)
+		end
+	end,
+})
+
+Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) InputWalkSpeed:Set(tostring(defaultWalkSpeed)) end end })
+Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) InputJumpPower:Set(tostring(defaultJumpPower)) end end })
+
+local jumpConnection
+Others:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "Infinite Jump",
+    Callback = function(Value)
+        if jumpConnection then jumpConnection:Disconnect() end
+        if Value then
+            jumpConnection = UserInputService.JumpRequest:Connect(function()
+                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
+                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end)
+        end
+    end,
+})
+
+Others:CreateButton({
+    Name = "Get TP Tool",
+    Callback = function()
+        local Backpack = plr:WaitForChild("Backpack")
+        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
+        local tool = Instance.new("Tool")
+        tool.Name = "TPTool"
+        tool.RequiresHandle = false
+        tool.CanBeDropped = false
+        tool.Parent = Backpack
+        local soundId = "rbxassetid://9118823109"
+        tool.Activated:Connect(function()
+            local mouse = plr:GetMouse()
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
+            local sound = Instance.new("Sound")
+            sound.SoundId = soundId
+            sound.Volume = 1
+            sound.Parent = root
+            sound:Play()
+            Debris:AddItem(sound, 2)
+            root.CFrame = CFrame.new(targetPos)
+        end)
+    end,
+})
+
+Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
+Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
+
+local ToggleNoClip = Others:CreateToggle({
+	Name = "No Clip",
+	CurrentValue = false,
+	Flag = "No Clip",
+	Callback = function(Value)
+		getgenv().noClip = Value
+		task.spawn(function()
+			while noClip do task.wait(0.001)
+				if char then
+					for _, v in pairs(char:GetChildren()) do
+						if (v:IsA("MeshPart") or v:IsA("Part")) then
+							v.CanCollide = not noClip
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+local original = {
+    Brightness = Lighting.Brightness,
+    ClockTime = Lighting.ClockTime,
+    FogEnd = Lighting.FogEnd,
+    Ambient = Lighting.Ambient,
+    OutdoorAmbient = Lighting.OutdoorAmbient
+}
+
+local fullBrightEnabled = false
+
+local ToggleFullBright = Others:CreateToggle({
+    Name = "Full Bright",
+    CurrentValue = false,
+    Flag = "Full Bright",
+    Callback = function(state)
+        fullBrightEnabled = state
+        if fullBrightEnabled then
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 12
+            Lighting.FogEnd = 999999
+            Lighting.Ambient = Color3.new(1, 1, 1)
+            Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+        else
+            for prop, val in pairs(original) do
+                Lighting[prop] = val
+            end
+        end
+    end
+})
+
+local ButtonCopyYouConfig = Others:CreateButton({
+	Name = "Copy You Config",
+	Callback = function()
+		local configPath = "GG_hub/GG hub - The Noob Experiment Battlefront.rfld"
+		if isfile and readfile and isfile(configPath) then
+			local content = readfile(configPath)
+			if content and #content > 0 then
+				if setclipboard then
+					setclipboard(content)
+					SendNotification("Sucess", "Your settings have been copied!", 3)
+				else
+					SendNotification("GG hub", "Error: Your executor does not support copying text!", 3)
+				end
+			else
+				SendNotification("GG hub", "Your configuration is empty or corrupt!", 3)
+			end
+		else
+			SendNotification("GG hub", "Configuration file not found, try again!", 3)
+		end
+	end
+})
+
+local ButtonAntiLag = Others:CreateButton({ Name = "Anti Lag", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/LegiteriumZ/RobloxScript/main/binh%20hub%20fps%20booster%20v1.lua"))() end,})
+local ButtonDestroyGui = Others:CreateButton({
+	Name = "Destroy Gui",
+	Callback = function()
+	Rayfield:Destroy()
+	end,
+})
+
+local DropdownSelectMapToJoin = FarmSettings:CreateDropdown({
+	Name = "Select Map To Join(In Development..)",
+	Options = {"roblox hq", "frozen tundra", "desert", "crossroad", "City", "battlefield"},
+	CurrentOption = "roblox hq",
+	Flag = "Select Map To Join(In Development..)",
+	Callback = function(Option)
+	while true do task.wait(0.5)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentMap = Option or nil
+        end
+	end,
+})
+
+local DropdownSelectDifficultyToJoin = FarmSettings:CreateDropdown({
+	Name = "Select Dificulty To Join(In Development...)",
+	Options = {"easy", "medium", "hard", "sandbox", "incident", "boss rush"},
+	CurrentOption = "easy",
+	Flag = "Select Dificulty To Join(In Development...)",
+	Callback = function(Option)
+	while true do task.wait(0.5)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentDifficulty = Option or nil
+        end
+	end,
+})
+
+local SliderSelectHealthQuantityToFarm = FarmSettings:CreateSlider({
+	Name = "Select Health Quantity To Farm(In Development)",
+	Range = {10, 100},
+	Increment = 1,
+	CurrentValue = 10,
+	Callback = function(Value)
+	while true do task.wait(0.5)
+        getgenv().currentHealth = Value or 10
+        end
+	end,
+})
+
+local function GetPlayerCharacter()
+    local character = {}
+    for _, v in ipairs(plr.charsBought:GetChildren()) do
+        if v:IsA("BoolValue") and v.Value then table.insert(character, v.Name) end
+    end
+    if #character == 0 then table.insert(character, nil) end
+    return character
+end
+local DropdownSelectCharacterToJoin = FarmSettings:CreateDropdown({
+	Name = "Select Character To Join(In Development...)",
+	Options = GetPlayerCharacter(),
+	CurrentOption = "Noob",
+	Callback = function(Option)
+	while true do task.wait(0.5)
+	if type(Option) == "table" then Option = Option[1] end
+        getgenv().currentMorph = Option or nil
+        end
+	end,
+})
+
+local ToggleAutoFarm = Main:CreateToggle({
+	Name = "Auto Farm",
+	CurrentValue = false,
+	Flag = "Auto Farm",
+	Callback = function(Value)
+		getgenv().autoFarm = Value
+
+		if Value then
+			local args = {getgenv().currentMorph,false,false}
+			game:GetService("ReplicatedStorage"):WaitForChild("MorphEvent"):FireServer(unpack(args))
+		end
+
+		task.spawn(function()
+			while getgenv().autoFarm do task.wait(0.0001)
+				if not workspace.Players:FindFirstChild(currentMorph) then
+					task.wait(0.1)
+					local a1 = {getgenv().currentDifficulty}
+					game:GetService("ReplicatedStorage"):WaitForChild("Votes"):WaitForChild("Voted"):FireServer(unpack(a1))
+					local a2 = {getgenv().currentMap}
+					game:GetService("ReplicatedStorage"):WaitForChild("Votes"):WaitForChild("MapVoted"):FireServer(unpack(a2))
+					task.wait(0.65)
+				else
+					local skip = {"Yes"}
+					game:GetService("ReplicatedStorage"):WaitForChild("Votes"):WaitForChild("SkipVoted"):FireServer(unpack(skip))
+					for _,v in pairs(game.Workspace.Enemies:GetChildren()) do
+						if not getgenv().autoFarm then break end
+						if v:IsA("Model") then
+							local npcHum = v:FindFirstChildOfClass("Humanoid")
+							local npcPart = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChildOfClass("BasePart")
+							if npcHum and npcPart then
+								local health = hum.Health
+								if health > getgenv().currentHealth then
+									npcHum.WalkSpeed = 0
+									hrp.CFrame = npcPart.CFrame * CFrame.new(0, 0, 3.5)
+									local abilities = char:WaitForChild("Abilities")
+									abilities.Punch.RemoteEvent:FireServer()
+									abilities.Kick.RemoteEvent:FireServer()
+									abilities.Kick.RemoteEvent:FireServer()
+								elseif health < getgenv().currentHealth then
+									getgenv().oldSpeed = hum.WalkSpeed
+									hrp.CFrame = CFrame.new(1732, -492, -101)
+									repeat task.wait(0.0001)
+										if hum.Health <= getgenv().currentHealth then
+											hum.WalkSpeed = 0
+										end
+									until not getgenv().autoFarm or hum.Health > getgenv().currentHealth
+									if hum then
+										hum.WalkSpeed = getgenv().currentWalkSpeed or getgenv().oldSpeed or defaultWalkSpeed
+									end
+									if getgenv().autoFarm and hum.Health > getgenv().currentHealth then
+										local args = {getgenv().currentMorph,false,false}
+										game:GetService("ReplicatedStorage"):WaitForChild("MorphEvent"):FireServer(unpack(args))
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+Rayfield:LoadConfiguration()
