@@ -84,10 +84,10 @@ local function getTools()
     return tools
 end
 
-local DropdownSelectWeapon = Main:CreateDropdown({
-    Name = "Select Weapon",
+local DropdownSelectTool = Main:CreateDropdown({
+    Name = "Select Tool",
     Options = getTools(),
-    Flag = "DropdownSelectWeapon",
+    Flag = "Select Tool",
     CurrentOption = originalTool,
     MultipleOptions = false,
     Callback = function(Option)
@@ -95,7 +95,7 @@ local DropdownSelectWeapon = Main:CreateDropdown({
         originalTool = Option or "Baby Bat"
     end,
 })
-Main:CreateButton({ Name = "Refresh Weapon", Callback = function() DropdownSelectWeapon:Refresh(getTools()) end })
+Main:CreateButton({ Name = "Refresh Tool", Callback = function() DropdownSelectTool:Refresh(getTools()) end })
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
@@ -112,7 +112,6 @@ local InputWalkSpeed = Others:CreateInput({
 	CurrentValue = tostring(defaultWalkSpeed),
 	PlaceholderText = tostring(defaultWalkSpeed),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputWalkSpeed",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -156,7 +155,6 @@ local InputJumpPower = Others:CreateInput({
 	CurrentValue = tostring(defaultJumpPower),
 	PlaceholderText = tostring(defaultJumpPower),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputJumpPower",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -180,7 +178,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -225,7 +223,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -255,7 +253,7 @@ local fullBrightEnabled = false
 local ToggleFullBright = Others:CreateToggle({
     Name = "Full Bright",
     CurrentValue = false,
-    Flag = "ToggleFullBright",
+    Flag = "Full Bright",
     Callback = function(state)
         fullBrightEnabled = state
         if fullBrightEnabled then
@@ -305,7 +303,7 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoAttackWithTool = Main:CreateToggle({
 	Name = "Auto Attack With Tool",
 	CurrentValue = false,
-	Flag = "ToggleAutoAttackWithTool",
+	Flag = "Auto Attack With Tool",
 	Callback = function(Value)
 	getgenv().autoAttack = Value
 	local backpack = plr:FindFirstChild("Backpack")
@@ -331,7 +329,7 @@ local ToggleAutoAttackWithTool = Main:CreateToggle({
 local ToggleAutoLockBase = Main:CreateToggle({
 	Name = "Auto Lock Base",
 	CurrentValue = false,
-	Flag = "ToggleAutoLockBase",
+	Flag = "Auto Lock Base",
 	Callback = function(Value)
 	getgenv().autoLock = Value
 	
@@ -348,7 +346,7 @@ local ToggleAutoLockBase = Main:CreateToggle({
 local ToggleAutoCollectCashFromYourBase = Main:CreateToggle({
 	Name = "Auto Collect Cash From Your Base",
 	CurrentValue = false,
-	Flag = "ToggleAutoCollectCashFromYourBase",
+	Flag = "Auto Collect Cash From Your Base",
 	Callback = function(Value)
 	getgenv().autoCollect = Value
 	
@@ -376,7 +374,7 @@ local DropdownSelectBaseToTeleport = Teleports:CreateDropdown({
 	Name = "Select Base To Teleport",
 	Options = GetBases(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectBaseToTeleport",
+	Flag = "Select Base To Teleport",
 	Callback = function(Option)
 if type(Option) == "table" then Option = Option[1] end
         getgenv().currentSelectBase = Option or nil
@@ -414,7 +412,7 @@ local ColorPickerEspVehicleColor = Main:CreateColorPicker({
 Main:CreateToggle({
     Name = "Auto Esp Vehicles",
     CurrentValue = false,
-    Flag = "ToggleAutoEspVehicles",
+    Flag = "Auto Esp Vehicles",
     Callback = function(Value)
         getgenv().autoEsp = Value
         task.spawn(function()
