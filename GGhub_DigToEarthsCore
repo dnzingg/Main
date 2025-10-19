@@ -102,7 +102,6 @@ local InputWalkSpeed = Others:CreateInput({
 	CurrentValue = tostring(defaultWalkSpeed),
 	PlaceholderText = tostring(defaultWalkSpeed),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputWalkSpeed",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -145,7 +144,6 @@ local InputJumpPower = Others:CreateInput({
 	CurrentValue = tostring(defaultJumpPower),
 	PlaceholderText = tostring(defaultJumpPower),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputJumpPower",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -168,7 +166,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -186,7 +184,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 local ToggleNoClip = Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -214,7 +212,7 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoGetMoney = Main:CreateToggle({
 	Name = "Auto Get Money",
 	CurrentValue = false,
-	Flag = "ToggleAutoGetMoney",
+	Flag = "Auto Get Money",
 	Callback = function(Value)
 	getgenv().autoMoney = Value
 	
@@ -230,7 +228,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("DigEv
 local ToggleAutoGetGems = Main:CreateToggle({
 	Name = "Auto Get Gems",
 	CurrentValue = false,
-	Flag = "ToggleAutoGetGems",
+	Flag = "Auto Get Gems",
 	Callback = function(Value)
 	getgenv().autoGem = Value
 	
@@ -247,7 +245,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GemEv
 local ToggleInstantDig = Main:CreateToggle({
 	Name = "Instant Dig",
 	CurrentValue = false,
-	Flag = "ToggleInstantDig",
+	Flag = "Instant Dig",
 	Callback = function(Value)
 	if Value then
 	plr:SetAttribute("InstantDig", true)
@@ -260,7 +258,7 @@ local ToggleInstantDig = Main:CreateToggle({
 local ToggleInfiniteJetpackFuel = Main:CreateToggle({
 	Name = "Infinite Jetpack Fuel",
 	CurrentValue = false,
-	Flag = "ToggleInfiniteJetpackFuel",
+	Flag = "Infinite Jetpack Fuel",
 	Callback = function(Value)
 	if Value then
 	plr:SetAttribute("InfiniteFuel", true)
@@ -273,7 +271,7 @@ local ToggleInfiniteJetpackFuel = Main:CreateToggle({
 local ToggleAutoTreasureBag = Main:CreateToggle({
 	Name = "Auto Treasure Bag",
 	CurrentValue = false,
-	Flag = "ToggleAutoTreasureBag",
+	Flag = "Auto Treasure Bag",
 	Callback = function(Value)
 	getgenv().autoTreasure = Value
 	
@@ -289,7 +287,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Treas
 local ToggleAutoCollectChest = Main:CreateToggle({
 	Name = "Auto Collect Chest",
 	CurrentValue = false,
-	Flag = "ToggleAutoCollectChest",
+	Flag = "Auto Collect Cash",
 	Callback = function(Value)
 	getgenv().autoChest = Value
 	
@@ -315,7 +313,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpinP
 local ToggleAutoGetDominusPet = Main:CreateToggle({
 	Name = "Auto Get Dominus Pet",
 	CurrentValue = false,
-	Flag = "ToggleAutoGetDominusPet",
+	Flag = "Auto Get Dominus Pet",
 	Callback = function(Value)
 	getgenv().autoGet = Value
 	
@@ -346,7 +344,7 @@ local DropdownSelectWorldToTeleport = Teleports:CreateDropdown({
 	Name = "Select World To Teleport",
 	Options = GetWorlds(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectWorldToTeleport",
+	Flag = "Select World To Teleport",
 	Callback = function(Option)
 	if type(Option) == "table" then Option = Option[1] end
         getgenv().currentSelectWorld = Option or nil
@@ -369,7 +367,7 @@ local ButtonTeleportToSelectedWorld = Teleports:CreateButton({
 local ToggleAutoWin = Main:CreateToggle({
 	Name = "Auto Win",
 	CurrentValue = false,
-	Flag = "ToggleAutoWin",
+	Flag = "Auto Win",
 	Callback = function(Value)
 	getgenv().autoWin = Value
 	
@@ -418,7 +416,7 @@ local DropdownSelectQuantityToUpgrade = Shop:CreateDropdown({
 	Name = "Select Quantity To Upgrade",
 	Options = {"1","2","3","4","5"},
 	CurrentOption = "1",
-	Flag = "DropdownSelectQuantityToUpgrade",
+	Flag = "Select Quantity To Upgrade",
 	Callback = function(Option)
 	if Option == "1" then
 	getgenv().quantityPet = 20
@@ -441,7 +439,7 @@ local DropdownSelectQuantityToUpgrade = Shop:CreateDropdown({
 local AutoUpgradeSelectedPet = Shop:CreateToggle({
 	Name = "Auto Upgrade Selected Pet",
 	CurrentValue = false,
-	Flag = "AutoUpgradeSelectedPet",
+	Flag = "Auto Upgrade Selected Pet",
 	Callback = function(Value)
 	getgenv().autoUpgrade = Value
 	
@@ -481,7 +479,7 @@ local DropdownSelectMethodToSpin = Shop:CreateDropdown({
 		"100M Money", "3 Spins", "Random Pickaxe", "265 Gems", "10 Spins"
 	},
 	CurrentOption = nil,
-	Flag = "DropdownSelectMethodToSpin",
+	Flag = "Select Method To Spin",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		local map = {
@@ -508,7 +506,7 @@ local DropdownSelectMethodToSpin = Shop:CreateDropdown({
 local ToggleAutoSpinWheelWithMethod = Shop:CreateToggle({
 	Name = "Auto Spin Wheel With Method",
 	CurrentValue = false,
-	Flag = "ToggleAutoSpinWheelWithMethod",
+	Flag = "Auto Spin Wheel With Method",
 	Callback = function(Value)
 		getgenv().autoSpin = Value
 
