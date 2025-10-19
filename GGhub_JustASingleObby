@@ -40,7 +40,7 @@ Icon = 16570037140,
 LoadingTitle = "Loading...",
 LoadingSubtitle = "by DNzinGG",
 ShowText = "GG hub", -- for mobile users to unhide rayfield, change if you'd like
-Theme = "Ocean", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+Theme = "Amethyst", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
 ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
 
@@ -74,7 +74,6 @@ Range = {0, 1000},
 Increment = 1,
 Suffix = "Speed",
 CurrentValue = plr.Character:WaitForChild("Humanoid").WalkSpeed,
-Flag = "SliderWalkSpeed",
 Callback = function(Value)
 plr.Character.Humanoid.WalkSpeed = Value
 end,
@@ -86,7 +85,6 @@ Range = {0, 500},
 Increment = 1,
 Suffix = "JumpPower",
 CurrentValue = plr.Character.Humanoid.JumpPower,
-Flag = "SliderJumpPower",
 Callback = function(Value)
 plr.Character.Humanoid.UseJumpPower = true
 plr.Character.Humanoid.JumpPower = Value
@@ -112,7 +110,7 @@ end,
 local ToggleInfiniteJump = Others:CreateToggle({
 Name = "Infinite Jump",
 CurrentValue = false,
-Flag = "ToggleInfiniteJump",
+Flag = "Infinite Jump",
 Callback = function(Value)
 if Value == true then
 local UserInputService = game:GetService("UserInputService")
@@ -184,11 +182,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/
 end,
 })
 
--- AUTO BLUXCOINS  
 local ToggleAutoBluxCoins = Main:CreateToggle({  
 	Name = "Auto BluxCoins",  
 	CurrentValue = false,  
-	Flag = "ToggleAutoBluxCoins",  
+	Flag = "Auto BluxCoins",  
 	Callback = function(Value)  
 	if Value then  
 	getgenv().autoBluxCoins = true
@@ -223,12 +220,11 @@ if #checkpoints == 0 then table.insert(checkpoints, nil) end
 return checkpoints
 end
 
--- TELEPORT TO CHECKPOINTS
 local DropdownSelectCheckpoint = Teleports:CreateDropdown({
 Name = "Select Checkpoint",
 Options = GetCheckpoint(),
 CurrentOption = nil,
-Flag = "DropdownSelectCheckpoint",
+Flag = "Select Checkpoint",
 MultipleOptions = false,
 Callback = function(Option)
 if type(Option) == "table" then Option = Option[1] end
@@ -249,7 +245,6 @@ end
 end,
 })
 
--- TELEPORT NPCS
 local function GetNPCs()
 local npcs = {}
 for _, v in ipairs(game.Workspace.Game.NPCs:GetChildren()) do
@@ -263,7 +258,7 @@ local DropdownSelectNPC = Teleports:CreateDropdown({
 Name = "Select NPC",
 Options = GetNPCs(),
 CurrentOption = nil,
-Flag = "DropdownSelectNPC",
+Flag = "Select NPC",
 MultipleOptions = false,
 Callback = function(Option)
 if type(Option) == "table" then Option = Option[1] end
@@ -284,14 +279,12 @@ end
 end,
 })
 
--- AUTO BUY ITEMS
-
 local DropdownSelectItem = Main:CreateDropdown({
     Name = "Select Item",
     Options = {"Bloxy Cola", "Classic Sword", "Hook", "Gravity Coil", "Player Knife", "Speed Coil", "Magic Clover","Double Coil", "Dash Boots"},
     MultipleOptions = true,
     CurrentOption = nil,
-    Flag = "DropdownSelectItem",
+    Flag = "Select Item",
     Callback = function(Options)
         if type(Options) ~= "table" then
             Options = {Options}
@@ -378,7 +371,7 @@ local ButtonBuyItem = Main:CreateButton({
 local ToggleAutoDrinkBloxyCola = Main:CreateToggle({
 	Name = "Auto Drink Bloxy Cola",
 	CurrentValue = false,
-	Flag = "ToggleAutoDrinkBloxyCola",
+	Flag = "Auto Drink Bloxy Cola",
 	Callback = function(Value)
 	getgenv().AutoBloxyCola = Value
 	if Value then
