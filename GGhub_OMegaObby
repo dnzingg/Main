@@ -67,7 +67,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -109,166 +109,10 @@ Others:CreateButton({
 Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
 Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
 
--- Main
 local ToggleAutoCheckpoint = Main:CreateToggle({
 Name = "Auto Checkpoint",
 CurrentValue = false,
-Flag = "ToggleAutoCheckpoint",
-Callback = function(Value)
-
-getgenv().autoCheckpoint = Value
-
-if Value then
-local checkpointsFolder = workspace:WaitForChild("Stages")
-
-local function TweenTo(part)
-	local info = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-	local tween = TweenService:Create(hrp, info, { CFrame = part.CFrame + Vector3.new(0, 3, 0) })
-	tween:Play()
-	tween.Completed:Wait()
-end
-local leaderstats = plr:WaitForChild("leaderstats", 10)
-local stageValue = leaderstats and leaderstats:WaitForChild("Stage", 10)
-task.spawn(function()
-	while getgenv().autoCheckpoint do
-		task.wait(0.0001)
-		if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
-			char, hrp = getCharacter()
-			continue
-		end
-		local checkpoints = {}
-		for _, v in pairs(checkpointsFolder:GetChildren()) do
-			if v:IsA("Folder") and v:FindFirstChild("Spawn") and v.Spawn:FindFirstChild("Base") then
-				table.insert(checkpoints, v)
-			end
-		end
-		table.sort(checkpoints, function(a, b)
-			local na, nb = tonumber(a.Name), tonumber(b.Name)
-			return (na or math.huge) < (nb or math.huge)
-		end)
-		if stageValue and tonumber(stageValue.Value) then
-			local currentStage = tonumber(stageValue.Value)
-			local nextStage = currentStage + 1
-			for _, cp in ipairs(checkpoints) do
-				if tonumber(cp.Name) == nextStage then
-					if not getgenv().autoCheckpoint then break end
-					hrp.CFrame = hrp.CFrame + Vector3.new(0, 115, 0)
-					task.wait()
-					TweenTo(cp.Spawn.Base)
-					break
-				end
-			end
-		end
-		end
-end)
-end
-endlocal Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-local Players = game:GetService("Players")
-local plr = Players.LocalPlayer
-local TS = game:GetService("TweenService")
-local TweenService = game:GetService("TweenService")
-local StarterGui = game:GetService("StarterGui")
-local Workspace = game:GetService("Workspace")
-local UserInputService = game:GetService("UserInputService")
-local Debris = game:GetService("Debris")
-
-local char, hum, hrp
-local function updateCharacter(c)
-    char = c or plr.Character or plr.CharacterAdded:Wait()
-    hum = char:WaitForChild("Humanoid")
-    hrp = char:WaitForChild("HumanoidRootPart")
-end
-
-if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
-plr.CharacterAdded:Connect(updateCharacter)
-
-local defaultWalkSpeed = plr.Character.Humanoid.WalkSpeed or 16
-local defaultJumpPower = plr.Character.Humanoid.JumpPower or 50
-
-local Window = Rayfield:CreateWindow({
-    Name = "GG hub - oMega Obby  725 Stages!",
-    Icon = 0,
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "by DNzinGG",
-    ShowText = "GG hub",
-    Theme = "Ocean",
-    ToggleUIKeybind = "K",
-    ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - oMega Obby  725 Stages!"},
-})
-
-local Main = Window:CreateTab("Main", 124620632231839)
-local Teleports = Window:CreateTab("Teleports", 6723742952)
-local Others = Window:CreateTab("Others", 12122755689)
-
-local SliderWalkSpeed = Others:CreateSlider({
-    Name = "Change WalkSpeed",
-    Range = {0, 1000},
-    Increment = 5,
-    CurrentValue = hum and hum.WalkSpeed or defaultWalkSpeed,
-    Callback = function(Value) if hum then hum.WalkSpeed = Value end end,
-})
-local SliderJumpPower = Others:CreateSlider({
-    Name = "Change JumpPower",
-    Range = {0, 1000},
-    Increment = 5,
-    CurrentValue = hum and hum.JumpPower or defaultJumpPower,
-    Callback = function(Value) 
-if hum then hum.UseJumpPower = true task.wait() hum.JumpPower = Value end end,
-})
-Others:CreateButton({ Name = "Reset WalkSpeed", Callback = function() if hum then hum.WalkSpeed = defaultWalkSpeed SliderWalkSpeed:Set(defaultWalkSpeed) end end })
-Others:CreateButton({ Name = "Reset JumpPower", Callback = function() if hum then hum.JumpPower = defaultJumpPower SliderJumpPower:Set(defaultJumpPower) end end })
-
-local jumpConnection
-Others:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
-    Callback = function(Value)
-        if jumpConnection then jumpConnection:Disconnect() end
-        if Value then
-            jumpConnection = UserInputService.JumpRequest:Connect(function()
-                local h = plr.Character and plr.Character:FindFirstChild("Humanoid")
-                if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
-            end)
-        end
-    end,
-})
-
-Others:CreateButton({
-    Name = "Get TP Tool",
-    Callback = function()
-        local Backpack = plr:WaitForChild("Backpack")
-        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
-        local tool = Instance.new("Tool")
-        tool.Name = "TPTool"
-        tool.RequiresHandle = false
-        tool.CanBeDropped = false
-        tool.Parent = Backpack
-        local soundId = "rbxassetid://9118823109"
-        tool.Activated:Connect(function()
-            local mouse = plr:GetMouse()
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
-            local sound = Instance.new("Sound")
-            sound.SoundId = soundId
-            sound.Volume = 1
-            sound.Parent = root
-            sound:Play()
-            Debris:AddItem(sound, 2)
-            root.CFrame = CFrame.new(targetPos)
-        end)
-    end,
-})
-
-Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
-Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
-
--- Main
-local ToggleAutoCheckpoint = Main:CreateToggle({
-Name = "Auto Checkpoint",
-CurrentValue = false,
-Flag = "ToggleAutoCheckpoint",
+Flag = "Auto Checkpoint",
 Callback = function(Value)
 
 getgenv().autoCheckpoint = Value
