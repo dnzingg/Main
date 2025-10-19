@@ -75,7 +75,6 @@ local InputWalkSpeed = Others:CreateInput({
 	CurrentValue = tostring(defaultWalkSpeed),
 	PlaceholderText = tostring(defaultWalkSpeed),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputWalkSpeed",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -120,7 +119,6 @@ local InputJumpPower = Others:CreateInput({
 	CurrentValue = tostring(defaultJumpPower),
 	PlaceholderText = tostring(defaultJumpPower),
 	RemoveTextAfterFocusLost = false,
-	Flag = "InputJumpPower",
 	Callback = function(Text)
 		local num = tonumber(Text)
 		if num then
@@ -144,7 +142,7 @@ local jumpConnection
 Others:CreateToggle({
 	Name = "Infinite Jump",
 	CurrentValue = false,
-	Flag = "ToggleInfiniteJump",
+	Flag = "Infinite Jump",
 	Callback = function(Value)
 		if jumpConnection then jumpConnection:Disconnect() end
 		if Value then
@@ -189,7 +187,7 @@ Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() l
 Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(Value)
 		getgenv().noClip = Value
 		task.spawn(function()
@@ -209,7 +207,7 @@ Others:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Lollipop",
 	CurrentValue = false,
-	Flag = "ToggleAutoLollipop",
+	Flag = "Auto Lollipop",
 	Callback = function(Value)
 		getgenv().AutoClick = Value
 		task.spawn(function()
@@ -226,7 +224,7 @@ Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Rebirth",
 	CurrentValue = false,
-	Flag = "ToggleAutoRebirth",
+	Flag = "Auto Rebirth",
 	Callback = function(Value)
 		getgenv().autoRebirth = Value
 		task.spawn(function()
@@ -241,9 +239,9 @@ Main:CreateToggle({
 })
 
 Main:CreateToggle({
-	Name = "Auto Equip Best Pets(BETA)",
+	Name = "Auto Equip Best Pets",
 	CurrentValue = false,
-	Flag = "ToggleAutoEquipBestPets",
+	Flag = "Auto Equip Best Pets",
 	Callback = function(Value)
 		getgenv().autoEquip = Value
 		if Value then
@@ -286,7 +284,7 @@ Main:CreateToggle({
 Main:CreateToggle({
 	Name = "Auto Equip Pets(Random)",
 	CurrentValue = false,
-	Flag = "ToggleAutoEquipPets(Random)",
+	Flag = "Auto Equip Pets(Random)",
 	Callback = function(Value)
 		getgenv().autoPet = Value
 		task.spawn(function()
@@ -307,7 +305,7 @@ Main:CreateToggle({
 local ToggleAutoUnlockAreas = Main:CreateToggle({
 	Name = "Auto Unlock Areas",
 	CurrentValue = false,
-	Flag = "ToggleAutoUnlockAreas",
+	Flag = "Auto Unlock Areas",
 	Callback = function(Value)
 	getgenv().autoArea = Value
 	
@@ -318,7 +316,7 @@ local ToggleAutoUnlockAreas = Main:CreateToggle({
 })
 
 Main:CreateButton({
-	Name = "Unlock All Areas",
+	Name = "Unlock All Areas(Visual)",
 	Callback = function()
 		for _,v in pairs(workspace.Map:GetChildren()) do
 			if v.Name == "Doors" then v:Destroy() end
@@ -338,7 +336,7 @@ local DropdownSelectArea = Teleports:CreateDropdown({
 	Name = "Select Area",
 	Options = GetAreas(),
 	CurrentOption = nil,
-	Flag = "DropdownSelectArea",
+	Flag = "Select Area",
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
 		getgenv().currentArea = Option or nil
@@ -346,7 +344,7 @@ local DropdownSelectArea = Teleports:CreateDropdown({
 })
 
 Teleports:CreateButton({
-	Name = "TeleportToArea",
+	Name = "Teleport To Area",
 	Callback = function()
 		if getgenv().currentArea ~= nil then
 			for _,v in pairs(game.Workspace.Map:GetChildren()) do
@@ -372,7 +370,7 @@ Main:CreateDropdown({
 	Options = GetEggs(),
 	CurrentOption = {},
 	MultipleOptions = true,
-	Flag = "DropdownSelectEgg",
+	Flag = "Select Egg",
 	Callback = function(Option)
 		if typeof(Option) == "table" then
 			getgenv().currentEgg = Option
@@ -385,7 +383,7 @@ Main:CreateDropdown({
 Main:CreateToggle({
 	Name = "Auto Open Egg",
 	CurrentValue = false,
-	Flag = "ToggleAutoOpenEgg",
+	Flag = "Auto Open Egg",
 	Callback = function(Value)
 		getgenv().autoEgg = Value
 		if Value then
@@ -443,7 +441,7 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoUpgradeMoreLollipop = MainOther:CreateToggle({
 	Name = "Auto Upgrade More Lollipop",
 	CurrentValue = false,
-	Flag = "ToggleAutoUpgradeMoreLollipop",
+	Flag = "Auto Upgrade More Lollipop",
 	Callback = function(Value)
 	getgenv().autoUpgrade = Value
 	
@@ -459,7 +457,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GemUp
 local ToggleAutoUpgradeMoreWalkSpeed = MainOther:CreateToggle({
 	Name = "Auto Upgrade More WalkSpeed",
 	CurrentValue = false,
-	Flag = "ToggleAutoUpgradeMoreWalkSpeed",
+	Flag = "Auto Upgrade More WalkSpeed",
 	Callback = function(Value)
 	getgenv().autoUpgrade = Value
 	
@@ -475,7 +473,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GemUp
 local ToggleAutoDeleteBadPets = MainOther:CreateToggle({
 	Name = "Auto Delete Bad Pets",
 	CurrentValue = false,
-	Flag = "ToggleAutoDeleteBadPets",
+	Flag = "Auto Delete Bad Pets",
 	Callback = function(Value)
 		getgenv().AutoDelete = Value
 		task.spawn(function()
@@ -518,7 +516,7 @@ local ToggleAutoDeleteBadPets = MainOther:CreateToggle({
 local ToggleAutoDeleteAllPets = MainOther:CreateToggle({
 	Name = "Auto Delete All Pets",
 	CurrentValue = false,
-	Flag = "ToggleAutoDeleteAllPets",
+	Flag = "Auto Delete All Pets",
 	Callback = function(Value)
 		getgenv().AutoDeleteAll = Value
 		task.spawn(function()
