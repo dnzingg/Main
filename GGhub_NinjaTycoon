@@ -99,7 +99,7 @@ local jumpConnection
 Others:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
-    Flag = "ToggleInfiniteJump",
+    Flag = "Infinite Jump",
     Callback = function(Value)
         if jumpConnection then jumpConnection:Disconnect() end
         if Value then
@@ -230,7 +230,7 @@ local BossDropdown = Main:CreateDropdown({
     Options = BossOptions,
     CurrentOption = nil,
     MultipleOptions = true,
-    Flag = "SelectBoss",
+    Flag = "Select Boss",
     Callback = function(Options)
         if type(Options) == "table" then SelectedBosses = Options else SelectedBosses = {Options} end
         local cleaned = {}
@@ -258,7 +258,7 @@ end
 Main:CreateToggle({
     Name = "Auto kill Ninjas",
     CurrentValue = false,
-    Flag = "AutoKillNinjas",
+    Flag = "Auto Kill Ninjas",
     Callback = function(Value)
         getgenv().autoKillNinja = Value
         task.spawn(function()
@@ -279,7 +279,7 @@ Main:CreateToggle({
 Main:CreateToggle({
     Name = "Auto kill Boss",
     CurrentValue = false,
-    Flag = "AutoKillBoss",
+    Flag = "Auto Kill Boss",
     Callback = function(Value)
         getgenv().autoBoss = Value
         task.spawn(function()
@@ -295,7 +295,7 @@ Main:CreateToggle({
 Main:CreateToggle({
     Name = "Auto Collect Scrolls",
     CurrentValue = false,
-    Flag = "AutoCollectScrolls",
+    Flag = "Auto Collect Scrolls",
     Callback = function(Value)
         getgenv().autoScrolls = Value
         task.spawn(function()
@@ -310,7 +310,7 @@ Main:CreateToggle({
 Main:CreateToggle({
     Name = "Auto Collect Cash From Your Tycoon",
     CurrentValue = false,
-    Flag = "AutoCollectCashFromYourTycoon",
+    Flag = "Auto Collect Cash From Your Tycoon",
     Callback = function(Value)
         getgenv().autoCollectCash = Value
         task.spawn(function()
@@ -379,7 +379,7 @@ local DropdownSelectItemShop = Shop:CreateDropdown({
     Options = getShop(),
     CurrentOption = nil,
     MultipleOptions = false,
-    Flag = "SelectItemToBuy",
+    Flag = "Select Item To Buy",
     Callback = function(Option)
         if type(Option) == "table" then Option = Option[1] end
         getgenv().currentItem = Option or nil
@@ -429,7 +429,7 @@ Shop:CreateButton({
 RyoShop:CreateToggle({
     Name = "Auto Activate Lava Release Ryo",
     CurrentValue = false,
-    Flag = "AutoActivateLavaReleaseRyo",
+    Flag = "Auto Activate Lava Release Ryo",
     Callback = function(Value)
         getgenv().autoLavaRelease = Value
         if Value then
