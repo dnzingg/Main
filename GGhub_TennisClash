@@ -26,8 +26,10 @@ else
 end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed, defaultJumpPower = 32, 52
+local defaultWalkSpeed, defaultJumpPower = 27, 52
 getgenv().currentJumpPower = defaultJumpPower
+getgenv().inServe = false
+getgenv().currentTypeBall, getgenv().currentTypeRacket, getgenv().currentTypeScoreEffect = "Single", "Single", "Single"
 getgenv().currentArena, getgenv().currentPracticeArena, getgenv().currentJoinArena = nil, nil, nil
 getgenv().autoStrike, getgenv().autoSmash, getgenv().NoClip = false, false, false
 getgenv().esp, getgenv().espArena, getgenv().espPlayers, getgenv().espPlayersNear = false, false, false, false
@@ -51,11 +53,8 @@ getgenv().SendNotification = function(title, content, duration, image)
 	end
 end
 
-local Window
-
 local gameInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
 local gameName = gameInfo.Name
-if Rayfield then
 	Window = Rayfield:CreateWindow({
 		Name = "GG hub - " .. gameName,
 		Icon = 16570037140,
@@ -72,14 +71,10 @@ if Rayfield then
 			FileName = "GG hub - Tennis Clash"
 		}
 	})
-else
-	warn("Rayfield não carregado — UI desabilitada.")
-end
-
-if not Window then return end
 
 local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
+local Shop = Window:CreateTab("Shop", 11385395241)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Aimbot = Window:CreateTab("Aimbot", 74133076168703)
 local Esp = Window:CreateTab("Esp", 120129574453255)
@@ -88,10 +83,15 @@ local Others = Window:CreateTab("Others", 12122755689)
 local SectionInfos = Info:CreateSection("Infos")
 Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
 local SectionUpdateLog = Info:CreateSection("Update Log")
+Info:CreateParagraph({Title = "19/10/2025", Content = "Auto Serve"})
+Info:CreateParagraph({Title = "19/10/2025", Content = "Shop Tab"})
+Info:CreateParagraph({Title = "19/10/2025", Content = "Auto Spin Normal Balls(Shop)"})
+Info:CreateParagraph({Title = "19/10/2025", Content = "Auto Spin Normal Rackets(Shop)"})
+Info:CreateParagraph({Title = "19/10/2025", Content = "Auto Spin Score Effects"})
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = hum and hum.WalkSpeed or defaultWalkSpeed,
 	Callback = function(v)
@@ -101,7 +101,7 @@ local SliderWalkSpeed = Others:CreateSlider({
 
 local SliderJumpPower = Others:CreateSlider({
 	Name = "Select JumpPower",
-	Range = {0, 1000},
+	Range = {1, 1000},
 	Increment = 5,
 	CurrentValue = defaultJumpPower,
 	Callback = function(v)
@@ -145,7 +145,7 @@ local jumpConnection
 Others:CreateToggle({
 	Name = "Infinite Jump",
 	CurrentValue = false,
-	Flag = "ToggleInfiniteJump",
+	Flag = "Infinite Jump",
 	Callback = function(v)
 		if jumpConnection then jumpConnection:Disconnect(); jumpConnection = nil end
 		if v then
@@ -153,32 +153,6 @@ Others:CreateToggle({
 				if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 			end)
 		end
-	end
-})
-
-Others:CreateButton({
-	Name = "Get TP Tool",
-	Callback = function()
-		local Backpack = plr:WaitForChild("Backpack")
-		if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
-		local tool = Instance.new("Tool")
-		tool.Name = "TPTool"
-		tool.RequiresHandle = false
-		tool.CanBeDropped = false
-		tool.Parent = Backpack
-		local soundId = "rbxassetid://9118823109"
-		tool.Activated:Connect(function()
-			if not hrp then return end
-			local mouse = plr:GetMouse()
-			local targetPos = mouse.Hit.Position + Vector3.new(0, 3, 0)
-			local sound = Instance.new("Sound")
-			sound.SoundId = soundId
-			sound.Volume = 1
-			sound.Parent = hrp
-			sound:Play()
-			Debris:AddItem(sound, 2)
-			hrp.CFrame = CFrame.new(targetPos)
-		end)
 	end
 })
 
@@ -201,7 +175,7 @@ Others:CreateButton({
 Others:CreateToggle({
 	Name = "No Clip",
 	CurrentValue = false,
-	Flag = "ToggleNoClip",
+	Flag = "No Clip",
 	Callback = function(v)
 		getgenv().NoClip = v
 	end
@@ -227,7 +201,7 @@ Teleports:CreateButton({
 Main:CreateToggle({
 	Name = "Auto Strike",
 	CurrentValue = false,
-	Flag = "ToggleAutoStrike",
+	Flag = "Auto Strike",
 	Callback = function(v)
 		getgenv().autoStrike = v
 		if v then
@@ -235,6 +209,7 @@ Main:CreateToggle({
 				while getgenv().autoStrike do
 					task.wait(0.25)
 					pcall(function()
+					if not getgenv().inServe then
 						local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 						if remotes and remotes:FindFirstChild("HitBallRF") and hrp then
 							local dir = hrp.CFrame.LookVector
@@ -248,6 +223,7 @@ Main:CreateToggle({
 								AttackMoveSpeed = dir * 30
 							}}
 							remotes.HitBallRF:InvokeServer(unpack(args))
+							end
 						end
 					end)
 				end
@@ -257,21 +233,21 @@ Main:CreateToggle({
 })
 
 Main:CreateToggle({
-	Name = "Auto Smash(BETA)",
+	Name = "Auto Smash",
 	CurrentValue = false,
-	Flag = "ToggleAutoSmash(BETA)",
+	Flag = "Auto Smash",
 	Callback = function(v)
 		getgenv().autoSmash = v
 		if v then
-			SendNotification("GG hub", "This feature is in BETA!", 1.5)
 			task.spawn(function()
 				while getgenv().autoSmash do
-					task.wait(0.5)
+					task.wait(0.53)
 					pcall(function()
+					if not getgenv().inServe then
 						if hrp then
 							local dir = hrp.CFrame.LookVector
-							local startPos = hrp.Position + Vector3.new(0, 3, 0)
-							local targetPos = startPos + dir * 10
+							local startPos = hrp.Position + Vector3.new(0, 1, -15)
+							local targetPos = startPos + dir * 1
 							local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 							if remotes and remotes:FindFirstChild("HitBallRF") then
 								local args = {{
@@ -280,10 +256,11 @@ Main:CreateToggle({
 									HitBallType = 7,
 									ClientTick = tick(),
 									CamDir = dir,
-									AttackMoveSpeed = dir * 10
+									AttackMoveSpeed = dir * 1
 								}}
 								remotes.HitBallRF:InvokeServer(unpack(args))
 							end
+						end
 						end
 					end)
 				end
@@ -305,7 +282,7 @@ Teleports:CreateDropdown({
 	Name = "Select Arena",
 	Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arena6"},
 	CurrentOption = nil,
-	Flag = "DropdownSelectArena",
+	Flag = "Select Arena",
 	MultipleOptions = false,
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
@@ -327,7 +304,7 @@ Teleports:CreateDropdown({
 	Name = "Select Practice Arena",
 	Options = {"Arena1","Arena2","Arena3","Arena4","Arena5","Arena6"},
 	CurrentOption = nil,
-	Flag = "DropdownSelectPracticeArena",
+	Flag = "Select Practice Arena",
 	MultipleOptions = false,
 	Callback = function(Option)
 		if type(Option) == "table" then Option = Option[1] end
@@ -451,7 +428,7 @@ end
 Esp:CreateToggle({
 	Name="Esp All Balls",
 	CurrentValue=false,
-	Flag="ToggleEspAllBalls",
+	Flag="Esp All Balls",
 	Callback=function(Value)
 		getgenv().esp=Value
 		if not Value then clearAllEsp() return end
@@ -472,7 +449,7 @@ Esp:CreateToggle({
 Esp:CreateToggle({
 	Name="Esp Ball From Your Arena",
 	CurrentValue=false,
-	Flag="ToggleEspBallFromYourArena",
+	Flag= "Esp Ball From Your Arena",
 	Callback=function(Value)
 		getgenv().espArena=Value
 		local maxDistance = 120
@@ -511,7 +488,7 @@ end
 Esp:CreateToggle({
 	Name="Esp All Players",
 	CurrentValue=false,
-	Flag="ToggleEspAllPlayers",
+	Flag="Esp All Players",
 	Callback=function(Value)
 		getgenv().espPlayers = Value
 		if not Value then clearAllPlayerEsp() end
@@ -521,7 +498,7 @@ Esp:CreateToggle({
 Esp:CreateToggle({
 	Name="Esp Players From Your Area",
 	CurrentValue=false,
-	Flag="ToggleEspPlayersFromYourArena",
+	Flag="Esp Players From Your Arena",
 	Callback=function(Value)
 		getgenv().espPlayersNear = Value
 		if not Value then clearAllPlayerEsp() end
@@ -563,7 +540,7 @@ local ButtonDestroyGui = Others:CreateButton({
 local ToggleAutoAwakening = Main:CreateToggle({
 	Name = "Auto Awakening",
 	CurrentValue = false,
-	Flag = "ToggleAutoAwakening",
+	Flag = "Auto Awakening",
 	Callback = function(Value)
 	getgenv().autoAwakening = Value
 	
@@ -579,10 +556,46 @@ game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Match
 local ToggleAutoServe = Main:CreateToggle({
 	Name = "Auto Serve",
 	CurrentValue = false,
-	Flag = "ToggleAutoServe",
+	Flag = "Auto Serve",
 	Callback = function(Value)
-	if Value then
-	SendNotification("GG hub", "In Development...", 2)
+	getgenv().autoServe = Value
+	
+	while autoServe do task.wait(0.1)
+	if plr.PlayerGui.ScreenServe.Enabled then
+	getgenv().inServe = true
+	local args = {
+	{
+		RotateType = -1,
+		Power = 71.15091867350054
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("ServeRF"):InvokeServer(unpack(args))
+task.wait(0.35)
+local args = {
+	"load",
+	"FX/Fx_Jump_SpeedLine"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("GetResource"):InvokeServer(unpack(args))
+local args = {
+	{
+		CamPos = vector.create(12541.615234375, 27.534210205078125, -3086.03271484375),
+		HitPos = vector.create(12566.703125, 25.408662796020508, -3056.28515625),
+		HitBallType = 7,
+		ClientTick = 1760857870.527848,
+		CamDir = vector.create(0.6671851873397827, -0.19208206236362457, 0.719700276851654),
+		ExtendParams = {
+			RotateType = -1,
+			Power = 60.19915458752349
+		},
+		AttackMoveSpeed = vector.zero
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("HitBallRF"):InvokeServer(unpack(args))
+task.wait(0.13)
+plr.PlayerGui.ScreenServe.Enabled = false
+	else
+	getgenv().inServe = false
+	end
 	end
 	end,
 })
@@ -592,17 +605,17 @@ local DropdownSelectArenaToJoin = Main:CreateDropdown({
 	Name = "Select Arena To Join",
 	Options = {"1","2","3","4","5","6"},
 	CurrentOption = nil,
-	Flag = "DropdownSelectArenaToJoin",
+	Flag = "Select Arena To Join",
 	Callback = function(Option)
 			if type(Option) == "table" then Option = Option[1] end
 		getgenv().currentJoinArena = Option
 	end,
 })
 
-local ToggleAutoJoinInAArena = Main:CreateToggle({
-	Name = "Auto Join In A Arena",
+local ToggleAutoJoinInArena = Main:CreateToggle({
+	Name = "Auto Join In Arena",
 	CurrentValue = false,
-	Flag = "ToggleAutoJoinInAArena",
+	Flag = "Auto Join In Arena",
 	Callback = function(Value)
 	getgenv().autoJoin = Value
 	if Value then
@@ -627,7 +640,7 @@ local _autoAimbotBallConn
 ToggleAutoAimbotBall = Aimbot:CreateToggle({
 	Name = "Auto Aimbot Ball",
 	CurrentValue = false,
-	Flag = "ToggleAutoAimbotBall",
+	Flag = "Auto Aimbot Ball",
 	Callback = function(Value)
 		getgenv().autoAimbotBall = Value
 		if _autoAimbotBallConn and _autoAimbotBallConn.Connected then
@@ -707,7 +720,7 @@ local _aimConn
 local ToggleAutoAimbotPlayerSelected = Aimbot:CreateToggle({
 	Name = "Auto Aimbot Player Selected",
 	CurrentValue = false,
-	Flag = "ToggleAutoAimbotPlayerSelected",
+	Flag = "Auto Aimbot Player Selected",
 	Callback = function(Value)
 		getgenv().autoAimbotPlayerSelected = Value
 		if _aimConn and _aimConn.Connected then
@@ -721,18 +734,4 @@ local ToggleAutoAimbotPlayerSelected = Aimbot:CreateToggle({
 				if not getgenv().autoAimbotPlayerSelected then return end
 				if not hrp then return end
 				local targetName = getgenv().selectedAimbotPlayerName
-				if not targetName then return end
-				local target = Players:FindFirstChild(targetName)
-				if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
-				local targetHRP = target.Character.HumanoidRootPart
-				if (hrp.Position - targetHRP.Position).Magnitude > 150 then return end
-				local cam = workspace.CurrentCamera
-				if cam then
-					cam.CFrame = CFrame.new(cam.CFrame.Position, targetHRP.Position)
-				end
-			end)
-		end
-	end,
-})
-
-Rayfield:LoadConfiguration()
+	
