@@ -6,6 +6,7 @@ local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local Debris = game:GetService("Debris")
+local PPS = game:GetService("ProximityPromptService")
 
 local char, hum, hrp
 local function updateCharacter(c)
@@ -17,10 +18,11 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-local defaultWalkSpeed = 24
-local defaultJumpPower = 50
+getgenv().defaultWalkSpeed = 24
+getgenv().defaultJumpPower = 50
 getgenv().startPosition, getgenv().finalPosition, getgenv().currentSelectBase = nil, nil, nil
 getgenv().originalTool = "Knife"
+getgenv().collectMoneyTime = 1.5
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -58,11 +60,15 @@ local Others = Window:CreateTab("Others", 12122755689)
 local SectionInfos = Info:CreateSection("Infos")
 Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
 local SectionUpdateLog = Info:CreateSection("Update Log")
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Visuals Tab"})
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Destroy All Bases Walls(Visual)"})
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Get All Tools(Visuals)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Add Visuals Tab"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Add Destroy All Bases Walls(Visual)"})
+Info:CreateParagraph({Title = "18/10/2025", Content = "+ Add Get All Tools(Visuals)"})
 Info:CreateParagraph({Title = "18/10/2025", Content = "+ Fix Bugs/Errors"})
 Info:CreateParagraph({Title = "18/10/2025", Content = "+ Select Tool(Main)"})
+Info:CreateParagraph({Title = "17/11/2025", Content = "+ Fix Auto Lock Base(Main)"})
+Info:CreateParagraph({Title = "17/11/2025", Content = "+ Fix Auto Collect Money(Main)"})
+Info:CreateParagraph({Title = "17/11/2025", Content = "+ Add Select Collect Money Time(Main)"})
+Info:CreateParagraph({Title = "17/11/2025", Content = "+ Fix Others Bugs/Errors"})
 
 local function getTools()
     local tools = {}
@@ -246,6 +252,21 @@ local ButtonDestroyGui = Others:CreateButton({
 	end,
 })
 
+local ToggleInstantSteal = Main:CreateToggle({
+	Name = "Instant Steal",
+	CurrentValue = false,
+	Flag = "Instant Steal",
+	Callback = function(Value)
+getgenv().instantSteal = Value
+
+PPS.PromptButtonHoldBegan:Connect(function(prompt)
+	if instantSteal and prompt.ActionText == "Take" then
+		fireproximityprompt(prompt)
+	end
+end)
+end,
+})
+
 local ToggleAutoLockBase = Main:CreateToggle({
 	Name = "Auto Lock Base",
 	CurrentValue = false,
@@ -265,12 +286,12 @@ local ToggleAutoLockBase = Main:CreateToggle({
 
 					if timer.Text == "0s" or timer.Text == "Lock base" then
 						local args = {
-							{
-								button,
-								"\022"
-							}
-						}
-						game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+	{
+		workspace:WaitForChild("Bases"):WaitForChild("2"):WaitForChild("LockgateButton"):WaitForChild("Button"),
+		"\026"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
 					end
 				end)
 			end
@@ -305,6 +326,106 @@ Main:CreateToggle({
 	end,
 })
 
+local ToggleAutoCollectMoney = Main:CreateToggle({
+	Name = "Auto Collect Money",
+	CurrentValue = false,
+	Flag = "Auto Collect Money",
+	Callback = function(Value)
+		getgenv().autoCollect = Value
+		
+		task.spawn(function()
+			while getgenv().autoCollect do
+				task.wait(getgenv().collectMoneyTime)
+				pcall(function()
+					if not plrBase or not plrBase:FindFirstChild("PlotSlots") then return end
+
+for _,v in pairs(plrBase.PlotSlots:GetChildren()) do
+if v:IsA("Model") and v:FindFirstChild("ClaimButton") then
+if v.ClaimButton:FindFirstChild("Button") then
+local args = {
+	{
+v.ClaimButton.Button,
+		"\027"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+end
+end
+end
+				end)
+			end
+		end)
+	end,
+})
+
+local SliderCollectMoneyTime = Main:CreateSlider({
+   Name = "Collect Money Time",
+   Range = {0.5, 100},
+   Increment = 0.5,
+   CurrentValue = 1.5,
+   Callback = function(Value)
+   getgenv().collectMoneyTime = Value
+  end,
+})
+
+local ButtonResetMoneyTime = Main:CreateButton({
+	Name = "Reset Money Time",
+	Callback = function()
+	getgenv().collectMoneyTime = 1.5
+	SliderCollectMoneyTime:Set(1.5)
+	end,
+})
+
+local ToggleAutoRebirth = Main:CreateToggle({
+	Name = "Auto Rebirth",
+	CurrentValue = false,
+	Flag = "Auto Rebirth",
+	Callback = function(Value)
+	getgenv().autoRebirth = Value
+	
+	while autoRebirth do task.wait(0.1)
+	local args = {
+	{
+		{
+			"\001",
+			"\145F\213\242\"\023J(\159a\bM\187\144\228\169",
+			{}
+		},
+		"\r"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+    end
+	end,
+})
+
+local ToggleAutoWheelSpin = Main:CreateToggle({
+	Name = "Auto Wheel Spin",
+	CurrentValue = false,
+	Flag = "Auto Wheel Spin",
+	Callback = function(Value)
+	getgenv().autoSpin = Value
+	
+	while autoSpin do task.wait(0.3)
+	local ticket = workspace.KoloFortuny.TicketCounter.DisplayPart.SurfaceGui.Price.PriceText
+	
+	if ticket.Text ~= "0" then
+	local args = {
+	{
+		{
+			"\001",
+			"\154X\019\135\018\132J^\182*\031\249\225(\031<",
+			{}
+		},
+		"%"
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
+	end
+	end
+	end,
+})
+
 local ButtonSetStartPosition = Main:CreateButton({
 	Name = "Set Start Position",
 	Callback = function()
@@ -336,40 +457,6 @@ local ButtonTeleportToFinalPosition = Main:CreateButton({
 	if hrp and getgenv().finalPosition ~= nil then
 	hrp.CFrame = getgenv().finalPosition
 	end
-	end,
-})
-
-local ToggleAutoCollectMoney = Main:CreateToggle({
-	Name = "Auto Collect Money",
-	CurrentValue = false,
-	Flag = "Auto Collect Money",
-	Callback = function(Value)
-		getgenv().autoCollect = Value
-		
-		task.spawn(function()
-			while getgenv().autoCollect do
-				task.wait(1.3)
-				pcall(function()
-					if not plrBase or not plrBase:FindFirstChild("PlotSlots") then return end
-					
-					for _, v in pairs(plrBase.PlotSlots:GetChildren()) do
-						if v:GetAttribute("Taken") == true and v:FindFirstChild("ClaimButton") then
-							local button = v.ClaimButton:FindFirstChild("Button")
-							if button then
-								local args = {
-	{
-	v.ClaimButton.Button,
-		"\023"
-	}
-}
-game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-								task.wait(0.001)
-							end
-						end
-					end
-				end)
-			end
-		end)
 	end,
 })
 
@@ -495,56 +582,6 @@ local ButtonTeleportToSelectBase = Teleports:CreateButton({
         if v:IsA("Model") and v.Name == currentSelectBase then
 	hrp.CFrame = v.PlotTeritory.CFrame + Vector3.new(0, 3.5, 0)
 	end
-	end
-	end
-	end,
-})
-
-local ToggleAutoRebirth = Main:CreateToggle({
-	Name = "Auto Rebirth",
-	CurrentValue = false,
-	Flag = "Auto Rebirth",
-	Callback = function(Value)
-	getgenv().autoRebirth = Value
-	
-	while autoRebirth do task.wait(0.1)
-	local args = {
-	{
-		{
-			"\001",
-			"\145F\213\242\"\023J(\159a\bM\187\144\228\169",
-			{}
-		},
-		"\r"
-	}
-}
-game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-    end
-	end,
-})
-
-local ToggleAutoWheelSpin = Main:CreateToggle({
-	Name = "Auto Wheel Spin",
-	CurrentValue = false,
-	Flag = "Auto Wheel Spin",
-	Callback = function(Value)
-	getgenv().autoSpin = Value
-	
-	while autoSpin do task.wait(0.3)
-	local ticket = workspace.KoloFortuny.TicketCounter.DisplayPart.SurfaceGui.Price.PriceText
-	
-	if ticket.Text ~= "0" then
-	local args = {
-	{
-		{
-			"\001",
-			"\154X\019\135\018\132J^\182*\031\249\225(\031<",
-			{}
-		},
-		"%"
-	}
-}
-game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
 	end
 	end
 	end,
