@@ -52,6 +52,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
+local MainOthers = Window:CreateTab("MainOthers", 124620632231839)
 local Esp = Window:CreateTab("Esp", 120129574453255)
 local Visuals = Window:CreateTab("Visuals", 83251462099433)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
@@ -278,7 +279,7 @@ local ToggleAutoLockBase = Main:CreateToggle({
 
 		task.spawn(function()
 			while getgenv().autoLockBase do
-				task.wait(0.0001)
+				task.wait(0.001)
 				pcall(function()
 					if not plrBase or not plrBase:FindFirstChild("LockgateButton") then return end
 					local button = plrBase.LockgateButton:FindFirstChild("Button")
@@ -286,7 +287,7 @@ local ToggleAutoLockBase = Main:CreateToggle({
 					local timer = button:FindFirstChild("LockTimer") and button.LockTimer:FindFirstChild("Frame") and button.LockTimer.Frame:FindFirstChild("TextLabel")
 					if not timer then return end
 
-					if timer.Text == "0s" or timer.Text == "Lock base" then
+					if timer.Text == "Lock base" then
 						local args = {
 	{
 		plrBase:WaitForChild("LockgateButton"):WaitForChild("Button"),
@@ -328,7 +329,23 @@ Main:CreateToggle({
 	end,
 })
 
-local ToggleAutoCollectMoney = Main:CreateToggle({
+local ToggleAntiRagdoll = Main:CreateToggle({
+	Name = "Anti Ragdoll",
+	CurrentValue = false,
+	Flag = "Anti Ragdoll",
+	Callback = function(Value)
+	getgenv().antiRagdoll = Value
+	
+	task.spawn(function()
+		while true do task.wait(.0001)
+			if not antiRagdoll then return end
+			hum.EvaluateStateMachine = true	
+		end
+	end)
+end,
+})
+
+local ToggleAutoCollectMoney = MainOthers:CreateToggle({
 	Name = "Auto Collect Money",
 	CurrentValue = false,
 	Flag = "Auto Collect Money",
@@ -360,7 +377,7 @@ end
 	end,
 })
 
-local SliderCollectMoneyTime = Main:CreateSlider({
+local SliderCollectMoneyTime = MainOthers:CreateSlider({
    Name = "Collect Money Time",
    Range = {0.5, 100},
    Increment = 0.5,
@@ -370,7 +387,7 @@ local SliderCollectMoneyTime = Main:CreateSlider({
   end,
 })
 
-local ButtonResetMoneyTime = Main:CreateButton({
+local ButtonResetMoneyTime = MainOthers:CreateButton({
 	Name = "Reset Money Time",
 	Callback = function()
 	getgenv().collectMoneyTime = 1.5
@@ -378,7 +395,7 @@ local ButtonResetMoneyTime = Main:CreateButton({
 	end,
 })
 
-local ToggleAutoRebirth = Main:CreateToggle({
+local ToggleAutoRebirth = MainOthers:CreateToggle({
 	Name = "Auto Rebirth",
 	CurrentValue = false,
 	Flag = "Auto Rebirth",
@@ -386,22 +403,22 @@ local ToggleAutoRebirth = Main:CreateToggle({
 	getgenv().autoRebirth = Value
 	
 	while autoRebirth do task.wait(0.3)
-	local args = {
+		local args = {
 	{
 		{
 			"\001",
-			"\145F\213\242\"\023J(\159a\bM\187\144\228\169",
+			"y\240O\185\2042BA\175\175\166\143\249\230Nw",
 			{}
 		},
-		"\r"
+		"\016"
 	}
 }
 game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
-    end
-	end,
+	end
+end,
 })
 
-local ToggleAutoWheelSpin = Main:CreateToggle({
+local ToggleAutoWheelSpin = MainOthers:CreateToggle({
 	Name = "Auto Wheel Spin",
 	CurrentValue = false,
 	Flag = "Auto Wheel Spin",
@@ -428,7 +445,7 @@ game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.
 	end,
 })
 
-local SliderTicketSpinCount = Main:CreateSlider({
+local SliderTicketSpinCount = MainOthers:CreateSlider({
    Name = "Ticket Spin Count",
    Range = {1, 1000},
    Increment = 1,
@@ -440,7 +457,7 @@ local SliderTicketSpinCount = Main:CreateSlider({
 end,
 })
 
-local ToggleAutoOpenGifts = Main:CreateToggle({
+local ToggleAutoOpenGifts = MainOthers:CreateToggle({
 Name = "Auto Open Gifts",
 CurrentValue = false,
 Flag = "Auto Open Gifts",
