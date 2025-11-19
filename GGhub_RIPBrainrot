@@ -22,15 +22,16 @@ getgenv().defaultWalkSpeed = 24
 getgenv().defaultJumpPower = 50
 getgenv().startPosition, getgenv().finalPosition, getgenv().currentSelectBase = nil, nil, nil
 getgenv().originalTool = "Knife"
-getgenv().collectMoneyTime = 1.5
+getgenv().collectMoneyTime = getgenv().collectMoneyTime or 1.5
+getgenv().spinCount = getgenv().spinCount or 1
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
         Rayfield:Notify({
-   Title = title or "GG hub",
-   Content = content or "",
-   Duration = duration or 3,
-   Image = image or 5107182098,
+    Title = title or "GG hub",
+	Content = content or "",
+	Duration = duration or 3,
+	Image = image or 5107182098,
 })
 end
 end
@@ -50,25 +51,11 @@ local Window = Rayfield:CreateWindow({
     ConfigurationSaving = { Enabled = true, FolderName = "GG_hub", FileName = "GG hub - RIP Brainrot" }
 })
 
-local Info = Window:CreateTab("Infos", 0)
 local Main = Window:CreateTab("Main", 124620632231839)
 local Esp = Window:CreateTab("Esp", 120129574453255)
 local Visuals = Window:CreateTab("Visuals", 83251462099433)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
-
-local SectionInfos = Info:CreateSection("Infos")
-Info:CreateParagraph({Title = "Creator", Content = "DNzinGG"})
-local SectionUpdateLog = Info:CreateSection("Update Log")
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Add Visuals Tab"})
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Add Destroy All Bases Walls(Visual)"})
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Add Get All Tools(Visuals)"})
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Fix Bugs/Errors"})
-Info:CreateParagraph({Title = "18/10/2025", Content = "+ Select Tool(Main)"})
-Info:CreateParagraph({Title = "17/11/2025", Content = "+ Fix Auto Lock Base(Main)"})
-Info:CreateParagraph({Title = "17/11/2025", Content = "+ Fix Auto Collect Money(Main)"})
-Info:CreateParagraph({Title = "17/11/2025", Content = "+ Add Select Collect Money Time(Main)"})
-Info:CreateParagraph({Title = "17/11/2025", Content = "+ Fix Others Bugs/Errors"})
 
 local function getTools()
     local tools = {}
@@ -260,7 +247,22 @@ local ToggleInstantSteal = Main:CreateToggle({
 getgenv().instantSteal = Value
 
 PPS.PromptButtonHoldBegan:Connect(function(prompt)
-	if instantSteal and prompt.ActionText == "Take" then
+	if instantSteal and prompt.ActionText == "Take" or prompt.ActionText == "Steal" then
+		fireproximityprompt(prompt)
+	end
+end)
+end,
+})
+
+local ToggleInstantGrab = Main:CreateToggle({
+	Name = "Instant Grab",
+	CurrentValue = false,
+	Flag = "Instant Grab",
+	Callback = function(Value)
+getgenv().instantGrab = Value
+
+PPS.PromptButtonHoldBegan:Connect(function(prompt)
+	if instantGrab and prompt.ActionText == "Grab" then
 		fireproximityprompt(prompt)
 	end
 end)
@@ -276,7 +278,7 @@ local ToggleAutoLockBase = Main:CreateToggle({
 
 		task.spawn(function()
 			while getgenv().autoLockBase do
-				task.wait(0.1)
+				task.wait(0.0001)
 				pcall(function()
 					if not plrBase or not plrBase:FindFirstChild("LockgateButton") then return end
 					local button = plrBase.LockgateButton:FindFirstChild("Button")
@@ -362,7 +364,7 @@ local SliderCollectMoneyTime = Main:CreateSlider({
    Name = "Collect Money Time",
    Range = {0.5, 100},
    Increment = 0.5,
-   CurrentValue = 1.5,
+   CurrentValue = getgenv().collectMoneyTime,
    Callback = function(Value)
    getgenv().collectMoneyTime = Value
   end,
@@ -383,7 +385,7 @@ local ToggleAutoRebirth = Main:CreateToggle({
 	Callback = function(Value)
 	getgenv().autoRebirth = Value
 	
-	while autoRebirth do task.wait(0.1)
+	while autoRebirth do task.wait(0.3)
 	local args = {
 	{
 		{
@@ -406,18 +408,18 @@ local ToggleAutoWheelSpin = Main:CreateToggle({
 	Callback = function(Value)
 	getgenv().autoSpin = Value
 	
-	while autoSpin do task.wait(0.3)
+	while autoSpin do task.wait(1.5)
 	local ticket = workspace.KoloFortuny.TicketCounter.DisplayPart.SurfaceGui.Price.PriceText
 	
-	if ticket.Text ~= "0" then
+	if ticket.Text == tostring(getgenv().spinCount) then
 	local args = {
 	{
 		{
 			"\001",
-			"\154X\019\135\018\132J^\182*\031\249\225(\031<",
+			"\133\172\170M\148XM\241\145\236Jy\003\171\246\253",
 			{}
 		},
-		"%"
+		")"
 	}
 }
 game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.5"):WaitForChild("dataRemoteEvent"):FireServer(unpack(args))
@@ -426,24 +428,61 @@ game:GetService("ReplicatedStorage"):WaitForChild("ncxyzero_bridgenet2-fork@1.1.
 	end,
 })
 
+local SliderTicketSpinCount = Main:CreateSlider({
+   Name = "Ticket Spin Count",
+   Range = {1, 1000},
+   Increment = 1,
+   Suffix = "Tickets",
+   CurrentValue = getgenv().spinCount,
+   Flag = "Ticket Spin Count",
+   Callback = function(Value)
+   	getgenv().spinCount = Value
+end,
+})
+
+local ToggleAutoOpenGifts = Main:CreateToggle({
+Name = "Auto Open Gifts",
+CurrentValue = false,
+Flag = "Auto Open Gifts",
+Callback = function(Value)
+getgenv().autoGift = Value
+
+while autoGift do task.wait(.1)
+for _,gift in pairs(workspace:GetChildren()) do
+if gift.Name == "Gift" and gift:IsA("Model") then
+if gift:FindFirstChild("RootPart") then
+local rootPart = gift.RootPart
+local oldPos = hrp.CFrame
+hrp.CFrame = rootPart.CFrame
+task.wait(.1)
+fireproximityprompt(rootPart:FindFirstChildOfClass("ProximityPrompt"))
+task.wait(.2)
+hrp.CFrame = oldPos
+end
+end
+end
+end
+end,
+})
+
 local ButtonSetStartPosition = Main:CreateButton({
-	Name = "Set Start Position",
+	Name = "Set First Position",
 	Callback = function()
 	getgenv().startPosition = hrp.CFrame
-	SendNotification("Start Position:", tostring(hrp.Position), 2)
+	SendNotification("Start Position:", tostring(hrp.Position), 3)
 	end,
 })
 
 local ButtonSetFinalPosition = Main:CreateButton({
-	Name = "Set Final Position",
+	Name = "Set Second Position",
 	Callback = function()
 	getgenv().finalPosition = hrp.CFrame
-	SendNotification("Final Position:", tostring(hrp.Position), 2)
+	SendNotification("Final Position:", tostring(hrp.Position), 3)
 	end,
 })
 
 local ButtonTeleportToStartPosition = Main:CreateButton({
-	Name = "Teleport To Start Position",
+	Name = "Teleport To First Position",
 	Callback = function()
 	if hrp and getgenv().startPosition ~= nil then
 	hrp.CFrame = getgenv().startPosition
@@ -452,7 +491,7 @@ local ButtonTeleportToStartPosition = Main:CreateButton({
 })
 
 local ButtonTeleportToFinalPosition = Main:CreateButton({
-	Name = "Teleport To Final Position",
+	Name = "Teleport To Second Position",
 	Callback = function()
 	if hrp and getgenv().finalPosition ~= nil then
 	hrp.CFrame = getgenv().finalPosition
@@ -584,6 +623,20 @@ local ButtonTeleportToSelectBase = Teleports:CreateButton({
 	end
 	end
 	end
+	end,
+})
+
+local ButtonTeleportToStartBrainrotRunway = Teleports:CreateButton({
+	Name = "Teleport To Start Brainrot Runway",
+	Callback = function()
+	hrp.CFrame = workspace.BrainrotRunway.Start.CFrame
+	end,
+})
+
+local ButtonTeleportToEndBrainrotRunway = Teleports:CreateButton({
+	Name = "Teleport To End Brainrot Runway",
+	Callback = function()
+	hrp.CFrame = workspace.BrainrotRunway.End.CFrame
 	end,
 })
 
