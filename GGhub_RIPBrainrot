@@ -87,14 +87,14 @@ for _,v in pairs(game.Workspace.Bases:GetChildren()) do
 local owner = v:WaitForChild("PlotTeritory") or v:FindFirstChild("PlotTeritory2")
 local attribute = owner:GetAttribute("Player")
 if owner and attribute == plr.Name or attribute == plr then
-plrBase = v
+getgenv().plrBase = v
 end
 end
 
 local SliderWalkSpeed = Others:CreateSlider({
 	Name = "Change WalkSpeed",
 	Range = {1, 1000},
-	Increment = 5,
+	Increment = 1,
 	CurrentValue = defaultWalkSpeed,
 	Callback = function(v)
 		getgenv().currentWalkSpeed = v
@@ -133,7 +133,7 @@ end)
 local SliderJumpPower = Others:CreateSlider({
 	Name = "Change JumpPower",
 	Range = {1, 1000},
-	Increment = 5,
+	Increment = 1,
 	CurrentValue = defaultJumpPower,
 	Callback = function(Value)
 		if hum then
@@ -182,34 +182,6 @@ Others:CreateToggle({
     end,
 })
 
-Others:CreateButton({
-    Name = "Get TP Tool",
-    Callback = function()
-        local Backpack = plr:WaitForChild("Backpack")
-        if Backpack:FindFirstChild("TPTool") then Backpack.TPTool:Destroy() end
-        local tool = Instance.new("Tool")
-        tool.Name = "TPTool"
-        tool.RequiresHandle = false
-        tool.CanBeDropped = false
-        tool.Parent = Backpack
-        local soundId = "rbxassetid://9118823109"
-        tool.Activated:Connect(function()
-            local mouse = plr:GetMouse()
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-            local targetPos = mouse.Hit.Position + Vector3.new(0,3,0)
-            local sound = Instance.new("Sound")
-            sound.SoundId = soundId
-            sound.Volume = 1
-            sound.Parent = root
-            sound:Play()
-            Debris:AddItem(sound, 2)
-            root.CFrame = CFrame.new(targetPos)
-        end)
-    end,
-})
-
-Others:CreateButton({ Name = "Force Reset", Callback = function() local h = char and char:FindFirstChildOfClass("Humanoid"); if h then h.Health = 0 end end })
 Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
 
 local ToggleNoClip = Others:CreateToggle({
@@ -379,8 +351,8 @@ end
 
 local SliderCollectMoneyTime = MainOthers:CreateSlider({
    Name = "Collect Money Time",
-   Range = {0.5, 100},
-   Increment = 0.5,
+   Range = {0.1, 100},
+   Increment = 0.1,
    CurrentValue = getgenv().collectMoneyTime,
    Callback = function(Value)
    getgenv().collectMoneyTime = Value
@@ -516,92 +488,171 @@ local ButtonTeleportToFinalPosition = Main:CreateButton({
 	end,
 })
 
-local EspBrainrotColor = Color3.fromRGB(85, 255, 0)
+local EspBrainrotColor = Color3.fromRGB(85,255,0)
 
 Esp:CreateColorPicker({
-    Name = "ESP Brainrot Color",
-    Color = EspBrainrotColor,
-    Callback = function(Value)
-        EspBrainrotColor = Value
-    end,
+	Name = "ESP Brainrot Color",
+	Color = EspBrainrotColor,
+	Callback = function(Value)
+		EspBrainrotColor = Value
+	end,
 })
 
 Esp:CreateToggle({
-    Name = "Auto Esp Brainrots From Road",
-    CurrentValue = false,
-    Flag = "Auto Esp Brainrots From Road",
-    Callback = function(Value)
-        getgenv().autoEsp = Value
-        task.spawn(function()
-            while true do
-                task.wait(0.3)
-                local folder = workspace:FindFirstChild("BrainrotRunway")
-                if not folder or not folder:FindFirstChild("BrainrotsWalking") then continue end
+	Name = "Esp Brainrots From Bases",
+	CurrentValue = false,
+	Flag = "Esp Brainrots From Bases",
+	Callback = function(Value)
+		getgenv().autoEsp = Value
+		task.spawn(function()
+			while true do
+				task.wait(0.3)
+				local bases = workspace:FindFirstChild("Bases")
+				if not bases then continue end
 
-                for _, v in pairs(folder.BrainrotsWalking:GetChildren()) do
-                    if not getgenv().autoEsp then
-                        if v:FindFirstChild("GG_Highlight") then v.GG_Highlight:Destroy() end
-                        if v:FindFirstChild("GG_Billboard") then v.GG_Billboard:Destroy() end
-                        for _, child in pairs(v:GetDescendants()) do
-                            if child:IsA("BillboardGui") and child.Name == "GG_Billboard" then
-                                child:Destroy()
-                            end
-                        end
-                    end
-                end
+				for _,v in pairs(bases:GetChildren()) do
+					local npcs = v:FindFirstChild("NPCs")
+					if npcs then
+						for _,npc in pairs(npcs:GetChildren()) do
+							if not getgenv().autoEsp then
+								if npc:FindFirstChild("GG_Highlight") then npc.GG_Highlight:Destroy() end
+								if npc:FindFirstChild("GG_Billboard") then npc.GG_Billboard:Destroy() end
+								for _,c in pairs(npc:GetDescendants()) do
+									if c:IsA("BillboardGui") and c.Name=="GG_Billboard" then c:Destroy() end
+								end
+							end
+						end
+					end
+				end
 
-                if not getgenv().autoEsp then break end
+				if not getgenv().autoEsp then break end
 
-                for _, v in pairs(folder.BrainrotsWalking:GetChildren()) do
-                    if v:IsA("Model") and v:GetAttribute("ConfigName") and not v:FindFirstChild("GG_Highlight") then
-                        local adornee = v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
-                        if not adornee then
-                            for _, part in ipairs(v:GetChildren()) do
-                                if part:IsA("BasePart") then
-                                    adornee = part
-                                    break
-                                end
-                            end
-                        end
-                        if not adornee then continue end
+				for _,v in pairs(bases:GetChildren()) do
+					if v == plrBase then continue end
+					local npcs = v:FindFirstChild("NPCs")
+					if not npcs then continue end
 
-                        local esp = Instance.new("Highlight")
-                        esp.Name = "GG_Highlight"
-                        esp.FillTransparency = 0.3
-                        esp.OutlineTransparency = 0
-                        esp.FillColor = EspBrainrotColor
-                        esp.Adornee = v
-                        esp.Parent = v
+					for _,npc in pairs(npcs:GetChildren()) do
+						if npc:IsA("Model") and npc:GetAttribute("ConfigName") and not npc:FindFirstChild("GG_Highlight") then
+							local adornee = npc.PrimaryPart or npc:FindFirstChildWhichIsA("BasePart")
+							if not adornee then
+								for _,p in ipairs(npc:GetChildren()) do
+									if p:IsA("BasePart") then adornee = p break end
+								end
+							end
+							if not adornee then continue end
 
-                        local gui = Instance.new("BillboardGui")
-                        gui.Name = "GG_Billboard"
-                        gui.AlwaysOnTop = true
-                        gui.MaxDistance = 5000
-                        gui.Size = UDim2.new(0, 120, 0, 25)
-                        gui.StudsOffset = Vector3.new(0, 6, 0)
-                        gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-                        gui.Adornee = adornee
-                        gui.Parent = adornee
+							local h = Instance.new("Highlight")
+							h.Name = "GG_Highlight"
+							h.FillTransparency = 0.3
+							h.OutlineTransparency = 0
+							h.FillColor = EspBrainrotColor
+							h.Adornee = npc
+							h.Parent = npc
 
-                        local label = Instance.new("TextLabel")
-                        label.Size = UDim2.new(1, 0, 1, 0)
-                        label.BackgroundTransparency = 1
-                        label.Text = tostring(v:GetAttribute("ConfigName") or "Brainrot")
-                        label.TextColor3 = EspBrainrotColor
-                        label.TextScaled = true
-                        label.Font = Enum.Font.FredokaOne
-                        label.Parent = gui
+							local g = Instance.new("BillboardGui")
+							g.Name = "GG_Billboard"
+							g.AlwaysOnTop = true
+							g.MaxDistance = 5000
+							g.Size = UDim2.new(0,120,0,25)
+							g.StudsOffset = Vector3.new(0,6,0)
+							g.ZIndexBehavior = Enum.ZIndexBehavior.Global
+							g.Adornee = adornee
+							g.Parent = adornee
 
-                        local stroke = Instance.new("UIStroke")
-                        stroke.Thickness = 2.8
-                        stroke.Color = Color3.fromRGB(0, 0, 0)
-                        stroke.Transparency = 0
-                        stroke.Parent = label
-                    end
-                end
-            end
-        end)
-    end,
+							local l = Instance.new("TextLabel")
+							l.Size = UDim2.new(1,0,1,0)
+							l.BackgroundTransparency = 1
+							l.Text = tostring(npc:GetAttribute("ConfigName") or "Brainrot")
+							l.TextColor3 = EspBrainrotColor
+							l.TextScaled = true
+							l.Font = Enum.Font.FredokaOne
+							l.Parent = g
+
+							local s = Instance.new("UIStroke")
+							s.Thickness = 2.8
+							s.Color = Color3.fromRGB(0,0,0)
+							s.Transparency = 0
+							s.Parent = l
+						end
+					end
+				end
+			end
+		end)
+	end,
+})
+
+Esp:CreateToggle({
+	Name = "Auto Esp Brainrots From Road",
+	CurrentValue = false,
+	Flag = "Auto Esp Brainrots From Road",
+	Callback = function(Value)
+		getgenv().autoEsp = Value
+		task.spawn(function()
+			while true do
+				task.wait(0.3)
+				local folder = workspace:FindFirstChild("BrainrotRunway")
+				if not folder or not folder:FindFirstChild("BrainrotsWalking") then continue end
+
+				for _,v in pairs(folder.BrainrotsWalking:GetChildren()) do
+					if not getgenv().autoEsp then
+						if v:FindFirstChild("GG_Highlight") then v.GG_Highlight:Destroy() end
+						if v:FindFirstChild("GG_Billboard") then v.GG_Billboard:Destroy() end
+						for _,c in pairs(v:GetDescendants()) do
+							if c:IsA("BillboardGui") and c.Name=="GG_Billboard" then c:Destroy() end
+						end
+					end
+				end
+
+				if not getgenv().autoEsp then break end
+
+				for _,v in pairs(folder.BrainrotsWalking:GetChildren()) do
+					if v:IsA("Model") and v:GetAttribute("ConfigName") and not v:FindFirstChild("GG_Highlight") then
+						local adornee = v.PrimaryPart or v:FindFirstChildWhichIsA("BasePart")
+						if not adornee then
+							for _,p in ipairs(v:GetChildren()) do
+								if p:IsA("BasePart") then adornee = p break end
+							end
+						end
+						if not adornee then continue end
+
+						local h = Instance.new("Highlight")
+						h.Name = "GG_Highlight"
+						h.FillTransparency = 0.3
+						h.OutlineTransparency = 0
+						h.FillColor = EspBrainrotColor
+						h.Adornee = v
+						h.Parent = v
+
+						local g = Instance.new("BillboardGui")
+						g.Name = "GG_Billboard"
+						g.AlwaysOnTop = true
+						g.MaxDistance = 5000
+						g.Size = UDim2.new(0,120,0,25)
+						g.StudsOffset = Vector3.new(0,6,0)
+						g.ZIndexBehavior = Enum.ZIndexBehavior.Global
+						g.Adornee = adornee
+						g.Parent = adornee
+
+						local l = Instance.new("TextLabel")
+						l.Size = UDim2.new(1,0,1,0)
+						l.BackgroundTransparency = 1
+						l.Text = tostring(v:GetAttribute("ConfigName") or "Brainrot")
+						l.TextColor3 = EspBrainrotColor
+						l.TextScaled = true
+						l.Font = Enum.Font.FredokaOne
+						l.Parent = g
+
+						local s = Instance.new("UIStroke")
+						s.Thickness = 2.8
+						s.Color = Color3.fromRGB(0,0,0)
+						s.Transparency = 0
+						s.Parent = l
+					end
+				end
+			end
+		end)
+	end,
 })
 
 local ButtonTeleportToYouBase = Teleports:CreateButton({
@@ -672,7 +723,7 @@ local ButtonDestroyAllBasesWalls = Visuals:CreateButton({
 	Name = "Destroy All Bases Walls",
 	Callback = function()
 	for _,v in pairs(game.Workspace.Bases:GetDescendants()) do
-	if v.Name == "GateMainCFrame" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
+if v.Name == "GateMainCFrame" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
 	v:Destroy()
 	end
 	if v.Name == "PlotDecor" and v.Parent.PlotTeritory:GetAttribute("Player") ~= plr.Name then
