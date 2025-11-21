@@ -186,7 +186,7 @@ local ToggleAutoGrab = Main:CreateToggle({
 }
 game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Grab"):FireServer(unpack(args))
 task.wait(3)
-hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-3, 3), 0, math.random(-3, 3))
+hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-5, 5), 1, math.random(-5, 5))
 end
 end
 end,	
