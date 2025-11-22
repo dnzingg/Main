@@ -185,8 +185,29 @@ local ToggleAutoGrab = Main:CreateToggle({
 	false
 }
 game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Grab"):FireServer(unpack(args))
-task.wait(3)
-hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-5, 5), 1, math.random(-5, 5))
+end
+end
+end,	
+})
+
+local ToggleAutoGrabWithTeleport = Main:CreateToggle({
+	Name = "Auto Grab With Teleport",
+	CurrentValue = false,
+	Flag = "Auto Grab With Teleport",
+	Callback = function(Value)
+	getgenv().autoGrabWithTp = Value
+	
+	while autoGrabWithTp do task.wait(.6)
+		if char:FindFirstChild("CurrentChunk") and char.CurrentChunk.Value == nil then
+	local args = {
+	false,
+	false,
+	false
+}
+game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Grab"):FireServer(unpack(args))
+task.wait(2.5)
+hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-5, 10), 1, math.random(-5, 10))
+hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-5, 10), 1, math.random(-5, 10))
 end
 end
 end,	
@@ -199,7 +220,7 @@ local ToggleAutoEat = Main:CreateToggle({
 	Callback = function(Value)
 		getgenv().autoEat = Value
 		
-		while autoEat do task.wait(.0001)
+		while autoEat do task.wait(.1)
 			game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Eat"):FireServer()
 		end
 end,
@@ -246,25 +267,71 @@ local ButtonGetAllGamepasses = Main:CreateButton({
 end,
 })
 
-local ToggleAutoCollectCandyAndCubes = Main:CreateToggle({
-	Name = "Auto Collect Candy And Cubes",
+local ToggleAutoCollectCubes = Main:CreateToggle({
+    Name= "Auto Collect Cubes",
+    CurrentValue = false,
+    Flag = "Auto Collect Cubes"
+    Callback = function(Value)
+        getgenv().autoCollectCubes = Value
+        while autoCollectCubes do
+            task.wait(.1)
+            for _,obj in ipairs(Workspace:GetChildren()) do
+                if obj:FindFirstChildOfClass("TouchTransmitter") and obj.Name == "Cube" then
+                    local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        firetouchinterest(part,hrp,0)
+                        task.wait()
+                        firetouchinterest(part,hrp,1)
+                    end
+                end
+            end
+        end
+    end
+})
+
+local ToggleAutoCollectCandy = Main:CreateToggle({
+    Name = "Auto Collect Candy",
+    CurrentValue = false,
+    Flag = "Auto Collect Candy",
+    Callback = function(Value)
+        getgenv().autoCollectCandy = Value
+        while autoCollectCandy do
+            task.wait(.1)
+            for _,obj in ipairs(Workspace:GetChildren()) do
+                if obj:FindFirstChildOfClass("TouchTransmitter") and obj.Name == "Candy" then
+                    local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        firetouchinterest(part,hrp,0)
+                        task.wait()
+                        firetouchinterest(part,hrp,1)
+                    end
+                end
+            end
+        end
+    end
+})
+
+local ToggleAutoRandomTeleport = Main:CreateToggle({
+	Name = "Auto Random Teleport",
 	CurrentValue = false,
-	Flag = "Auto Collect Candy And Cubes",
+	Flag = "Auto Random Teleport",
 	Callback = function(Value)
-	getgenv().autoCollect = Value
+		getgenv().autoTp = Value
 		
-	while autoCollect do task.wait(.0001)
-		for _,v in pairs(Workspace:GetChildren()) do
-			if v.Name == "Candy" or v.Name == "Cube" then
-					local oldPos = hrp.CFrame
-					local part = v:FindFirstChildOfClass("Part") or v:FindFirstChild("MeshPart") or v
-					hrp.CFrame = part.CFrame
-					task.wait(.2)
-					hrp.CFrame = oldPos
+		while autoTp do task.wait(.3)
+			local bedrock = workspace.Map:WaitForChild("Bedrock")
+			local list = {}
+			for _,v in pairs(workspace.Map.Fragmentable:GetChildren()) do
+				if v:IsA("Part") and v.Position.Y > bedrock.Position.Y then
+					list[#list+1] = v
+				end
+			end
+			if #list > 0 then
+				local rnd = list[math.random(1, #list)]
+				hrp.CFrame = rnd.CFrame
 			end
 		end
-	end
-end,
+	end,
 })
 
 Rayfield:LoadConfiguration()
