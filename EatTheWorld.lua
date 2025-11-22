@@ -268,9 +268,9 @@ end,
 })
 
 local ToggleAutoCollectCubes = Main:CreateToggle({
-    Name= "Auto Collect Cubes",
+    Name = "Auto Collect Cubes",
     CurrentValue = false,
-    Flag = "Auto Collect Cubes"
+    Flag = "Auto Collect Cubes",
     Callback = function(Value)
         getgenv().autoCollectCubes = Value
         while autoCollectCubes do
