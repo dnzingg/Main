@@ -47,7 +47,6 @@ local Window = Rayfield:CreateWindow({
 
 local Main = Window:CreateTab("Main", 124620632231839)
 local Upgrades = Window:CreateTab("Upgrades", 83020221502927)
-local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
 local SliderWalkSpeed = Others:CreateSlider({
