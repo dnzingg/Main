@@ -16,8 +16,8 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-getgenv().defaultWalkSpeed = 12
-getgenv().defaultJumpPower = 50
+getgenv().defaultWalkSpeed = hum.WalkSpeed
+getgenv().defaultJumpPower = hum.JumpPower
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -46,6 +46,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
+local Upgrades = Window:CreateTab("Upgrades", 0)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
@@ -175,19 +176,38 @@ local ToggleAutoGrab = Main:CreateToggle({
 	CurrentValue = false,
 	Flag = "Auto Grab",
 	Callback = function(Value)
-	getgenv().autoGrab = Value
-	
-	while autoGrab do task.wait(.8)
-		if char:FindFirstChild("CurrentChunk") and char.CurrentChunk.Value == nil then
-	local args = {
-	false,
-	false,
-	false
-}
-game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Grab"):FireServer(unpack(args))
-end
-end
-end,	
+		getgenv().autoGrab = Value
+		
+		local lastChange = tick()
+		local lastValue = nil
+		
+		while autoGrab do
+			task.wait(.5)
+			
+			local chunk = char:FindFirstChild("CurrentChunk")
+			if chunk then
+				local v = chunk.Value
+				
+				if v ~= lastValue then
+					lastChange = tick()
+					lastValue = v
+				end
+				
+				if v == nil then
+					local args = {false,false,false}
+					char.Events.Grab:FireServer(unpack(args))
+					
+					if tick() - lastChange > 1.3 then
+						hrp.CFrame = hrp.CFrame * CFrame.new(math.random(-10,10),1,math.random(-10,10))
+						getgenv().autoGrab = false
+						task.wait(1.2)
+						getgenv().autoGrab = true
+						lastChange = tick()
+					end
+				end
+			end
+		end
+	end,
 })
 
 local ToggleAutoGrabWithTeleport = Main:CreateToggle({
@@ -317,21 +337,106 @@ local ToggleAutoRandomTeleport = Main:CreateToggle({
 	Flag = "Auto Random Teleport",
 	Callback = function(Value)
 		getgenv().autoTp = Value
-		
-		while autoTp do task.wait(.3)
-			local bedrock = workspace.Map:WaitForChild("Bedrock")
-			local list = {}
-			for _,v in pairs(workspace.Map.Fragmentable:GetChildren()) do
-				if v:IsA("Part") and v.Position.Y > bedrock.Position.Y then
-					list[#list+1] = v
+
+		task.spawn(function()
+			while autoTp do
+				task.wait(.3)
+
+				local bedrock = workspace.Map:WaitForChild("Bedrock")
+				local list = {}
+
+				for _,v in ipairs(workspace.Map.Fragmentable:GetChildren()) do
+					if v:IsA("Part") and v.Position.Y > bedrock.Position.Y then
+						list[#list+1] = v
+					end
+				end
+
+				if #list > 0 then
+					hrp.CFrame = list[math.random(1, #list)].CFrame + Vector3.new(0, 1, 0)
 				end
 			end
-			if #list > 0 then
-				local rnd = list[math.random(1, #list)]
-				hrp.CFrame = rnd.CFrame
-			end
-		end
+		end)
 	end,
+})
+
+local ToggleAutoUpgradeMaxSize = Upgrades:CreateToggle({
+	Name = "Auto Upgrade Max Size",
+	CurrentValue = false,
+	Flag = "Auto Upgrade Max Size",
+	Callback = function(Value)
+	getgenv().autoUpgradeMaxSize = Value
+		
+	while autoUpgradeMaxSize do task.wait(.3)
+		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
+		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.MaxSize.BuyFrame.Price.Text)
+		if cubeValue >= priceValue then
+		local args = {
+	"MaxSize"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+		end
+end
+end,
+})
+
+local ToggleAutoUpgradeWalkSpeed = Upgrades:CreateToggle({
+	Name = "Auto Upgrade WalkSpeed",
+	CurrentValue = false,
+	Flag = "Auto Upgrade WalkSpeed",
+	Callback = function(Value)
+	getgenv().autoUpgradeWalkSpeed = Value
+	
+	while autoUpgradeWalkSpeed do task.wait(.3)
+		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
+		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.Speed.BuyFrame.Price.Text)
+		if cubeValue >= priceValue then
+local args = {
+	"Speed"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+end
+end
+end,
+})
+
+local ToggleAutoUpgradeSizeMultiplier = Upgrades:CreateToggle({
+	Name = "Auto Upgrade Size Multiplier",
+	CurrentValue = false,
+	Flag = "Auto Upgrade Size Multiplier",
+	Callback = function(Value)
+	getgenv().autoUpgradeSizeMultiplier = Value
+		
+	while autoUpgradeSizeMultiplier do task.wait(.3)
+		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
+		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.Multiplier.BuyFrame.Price.Text)
+		if cubeValue >= priceValue then
+local args = {
+	"Multiplier"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+end
+end
+end,
+})
+
+local ToggleAutoUpgradeEatSpeed = Upgrades:CreateToggle({
+	Name = "Auto Upgrade Eat Speed",
+	CurrentValue = false,
+	Flag = "Auto Upgrade Eat Speed",
+	Callback = function(Value)
+	getgenv().autoUpgradeEatSpeed = Value
+		
+	while autoUpgradeEatSpeed do task.wait(.3)
+		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
+		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.EatSpeed.BuyFrame.Price.Text)
+		if cubeValue >= priceValue then
+local args = {
+	"EatSpeed"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
+end
+end
+end,
 })
 
 Rayfield:LoadConfiguration()
