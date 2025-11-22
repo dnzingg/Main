@@ -16,8 +16,8 @@ end
 if plr.Character then updateCharacter(plr.Character) else plr.CharacterAdded:Wait(); updateCharacter(plr.Character) end
 plr.CharacterAdded:Connect(updateCharacter)
 
-getgenv().defaultWalkSpeed = hum.WalkSpeed
-getgenv().defaultJumpPower = hum.JumpPower
+getgenv().defaultWalkSpeed = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.Speed.UpgradeFrame.Amount.Text)
+getgenv().defaultJumpPower = 50
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -46,7 +46,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
-local Upgrades = Window:CreateTab("Upgrades", 0)
+local Upgrades = Window:CreateTab("Upgrades", 83020221502927)
 local Teleports = Window:CreateTab("Teleports", 6723742952)
 local Others = Window:CreateTab("Others", 12122755689)
 
@@ -215,22 +215,26 @@ local ToggleAutoGrabWithTeleport = Main:CreateToggle({
 	CurrentValue = false,
 	Flag = "Auto Grab With Teleport",
 	Callback = function(Value)
-	getgenv().autoGrabWithTp = Value
-	
-	while autoGrabWithTp do task.wait(.6)
-		if char:FindFirstChild("CurrentChunk") and char.CurrentChunk.Value == nil then
-	local args = {
-	false,
-	false,
-	false
-}
-game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Grab"):FireServer(unpack(args))
-task.wait(2.5)
-hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-5, 10), 1, math.random(-5, 10))
-hrp.CFrame = hrp.CFrame + Vector3.new(math.random(-5, 10), 1, math.random(-5, 10))
-end
-end
-end,	
+		getgenv().autoGrabWithTp = Value
+
+		task.spawn(function()
+			while autoGrabWithTp do
+				task.wait(.0001)
+				local chunk = char:FindFirstChild("CurrentChunk")
+				if chunk and chunk.Value == nil then
+					char.Events.Grab:FireServer(false, false, false)
+					task.wait(getgenv().autoThrow and 2.3 or 3.5)
+					local randPos = hrp.Position + Vector3.new(
+						math.random(-5, 10),
+						1,
+						math.random(-5, 10)
+					)
+					local randRot = math.rad(math.random(0, 360))
+					hrp.CFrame = CFrame.new(randPos) * CFrame.Angles(0, randRot, 0)
+				end
+			end
+		end)
+	end,
 })
 
 local ToggleAutoEat = Main:CreateToggle({
@@ -253,7 +257,7 @@ local ToggleAutoThrow = Main:CreateToggle({
 	Callback = function(Value)
 		getgenv().autoThrow = Value
 		
-		while autoThrow do task.wait(.2)
+		while autoThrow do task.wait(.15)
 			game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Throw"):FireServer()
 		end
 	
@@ -275,15 +279,60 @@ end
 end,
 })
 
-local ButtonGetAllGamepasses = Main:CreateButton({
-	Name = "Get All Gamepasses",
+local ButtonGetAllRobuxGamepasses = Main:CreateButton({
+	Name = "Get All Robux Gamepasses",
 	Callback = function(Value)
-		SendNotification(nil, "Está função pode não funcionar!", 2.5)
 		for _,v in pairs(plr.Gamepasses:GetChildren()) do
 			if v:IsA("BoolValue") and v.Value == false then
 				v.Value = true
-			end
+				SendNotification("Gamepasses Purchased:", v.Name, 2.5)
+				task.wait(.2)
 		end
+	end
+end,
+})
+
+local function touchOrTp(part)
+    local ok = pcall(function()
+        firetouchinterest(part,hrp,0)
+        task.wait()
+        firetouchinterest(part,hrp,1)
+    end)
+
+    if not ok then
+        local old = hrp.CFrame
+        hrp.CFrame = part.CFrame + Vector3.new(0,1,0)
+        task.wait(.3)
+        hrp.CFrame = old
+    end
+end
+
+local function getPart(obj)
+    if obj:IsA("BasePart") then
+        return obj
+    end
+    return obj:FindFirstChildWhichIsA("BasePart")
+end
+
+local ToggleAutoCollectAllRewards = Main:CreateToggle({
+	Name = "Auto Collect All Rewards",
+	CurrentValue = false,
+	Flag = "Auto Collect All Rewards",
+	Callback = function(Value)
+	getgenv().autoCollectRewards = Value
+	pcall(function()
+		while autoCollectRewards do
+            task.wait()
+            for _,obj in ipairs(Workspace:GetChildren()) do
+                if obj:FindFirstChildOfClass("TouchTransmitter") then
+                    local part = getPart(obj)
+                    if part then
+                        touchOrTp(part)
+                    end
+                end
+            end
+        end
+	end)
 end,
 })
 
@@ -293,19 +342,19 @@ local ToggleAutoCollectCubes = Main:CreateToggle({
     Flag = "Auto Collect Cubes",
     Callback = function(Value)
         getgenv().autoCollectCubes = Value
+        pcall(function()
         while autoCollectCubes do
-            task.wait(.1)
+            task.wait()
             for _,obj in ipairs(Workspace:GetChildren()) do
-                if obj:FindFirstChildOfClass("TouchTransmitter") and obj.Name == "Cube" then
-                    local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                if obj:FindFirstChildOfClass("TouchTransmitter") and (obj.Name == "Cube" or obj.Name == "Cubes") then
+                    local part = getPart(obj)
                     if part then
-                        firetouchinterest(part,hrp,0)
-                        task.wait()
-                        firetouchinterest(part,hrp,1)
+                        touchOrTp(part)
                     end
                 end
             end
         end
+        end)
     end
 })
 
@@ -315,19 +364,19 @@ local ToggleAutoCollectCandy = Main:CreateToggle({
     Flag = "Auto Collect Candy",
     Callback = function(Value)
         getgenv().autoCollectCandy = Value
+        pcall(function()
         while autoCollectCandy do
-            task.wait(.1)
+            task.wait()
             for _,obj in ipairs(Workspace:GetChildren()) do
                 if obj:FindFirstChildOfClass("TouchTransmitter") and obj.Name == "Candy" then
-                    local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                    local part = getPart(obj)
                     if part then
-                        firetouchinterest(part,hrp,0)
-                        task.wait()
-                        firetouchinterest(part,hrp,1)
+                        touchOrTp(part)
                     end
                 end
             end
         end
+        end)
     end
 })
 
@@ -359,84 +408,97 @@ local ToggleAutoRandomTeleport = Main:CreateToggle({
 	end,
 })
 
-local ToggleAutoUpgradeMaxSize = Upgrades:CreateToggle({
-	Name = "Auto Upgrade Max Size",
-	CurrentValue = false,
-	Flag = "Auto Upgrade Max Size",
-	Callback = function(Value)
-	getgenv().autoUpgradeMaxSize = Value
-		
-	while autoUpgradeMaxSize do task.wait(.3)
-		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
-		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.MaxSize.BuyFrame.Price.Text)
-		if cubeValue >= priceValue then
-		local args = {
-	"MaxSize"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
-		end
+local UpgGui = plr.PlayerGui:WaitForChild("ScreenGui").Shop.ShopFrames.Upgrades.UpgradeList
+local CubesText = plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes
+
+local function toNumber(str)
+    return tonumber((str:gsub(",", ""))) or 0
 end
-end,
+
+local function getCubes()
+    return toNumber(CubesText.Text)
+end
+
+local function getPrice(path)
+    local priceObj = path:FindFirstChild("BuyFrame") and path.BuyFrame:FindFirstChild("Price")
+    return priceObj and toNumber(priceObj.Text) or math.huge
+end
+
+local function buyUpgrade(name)
+    local ev = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent")
+    ev:FireServer(name)
+end
+
+getgenv().autoUpgradeMaxSize = false
+getgenv().autoUpgradeWalkSpeed = false
+getgenv().autoUpgradeSizeMultiplier = false
+getgenv().autoUpgradeEatSpeed = false
+
+local upgradeList = {
+    { flag = "autoUpgradeMaxSize",       gui = UpgGui.MaxSize,     name = "MaxSize" },
+    { flag = "autoUpgradeWalkSpeed",     gui = UpgGui.Speed,       name = "Speed" },
+    { flag = "autoUpgradeSizeMultiplier",gui = UpgGui.Multiplier,  name = "Multiplier" },
+    { flag = "autoUpgradeEatSpeed",      gui = UpgGui.EatSpeed,    name = "EatSpeed" }
+}
+
+task.spawn(function()
+    while true do
+        task.wait(0.3)
+
+        local cubes = getCubes()
+        local cheapestName = nil
+        local cheapestPrice = math.huge
+
+        for _, data in ipairs(upgradeList) do
+            if getgenv()[data.flag] then
+                local p = getPrice(data.gui)
+                if p < cheapestPrice then
+                    cheapestPrice = p
+                    cheapestName = data.name
+                end
+            end
+        end
+
+        if cheapestName and cubes >= cheapestPrice then
+            buyUpgrade(cheapestName)
+        end
+    end
+end)
+
+local ToggleAutoUpgradeMaxSize = Upgrades:CreateToggle({
+    Name = "Auto Upgrade Max Size",
+    CurrentValue = false,
+    Flag = "Auto Upgrade Max Size",
+    Callback = function(v)
+        getgenv().autoUpgradeMaxSize = v
+    end,
 })
 
 local ToggleAutoUpgradeWalkSpeed = Upgrades:CreateToggle({
-	Name = "Auto Upgrade WalkSpeed",
-	CurrentValue = false,
-	Flag = "Auto Upgrade WalkSpeed",
-	Callback = function(Value)
-	getgenv().autoUpgradeWalkSpeed = Value
-	
-	while autoUpgradeWalkSpeed do task.wait(.3)
-		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
-		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.Speed.BuyFrame.Price.Text)
-		if cubeValue >= priceValue then
-local args = {
-	"Speed"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
-end
-end
-end,
+    Name = "Auto Upgrade WalkSpeed",
+    CurrentValue = false,
+    Flag = "Auto Upgrade WalkSpeed",
+    Callback = function(v)
+        getgenv().autoUpgradeWalkSpeed = v
+    end,
 })
 
 local ToggleAutoUpgradeSizeMultiplier = Upgrades:CreateToggle({
-	Name = "Auto Upgrade Size Multiplier",
-	CurrentValue = false,
-	Flag = "Auto Upgrade Size Multiplier",
-	Callback = function(Value)
-	getgenv().autoUpgradeSizeMultiplier = Value
-		
-	while autoUpgradeSizeMultiplier do task.wait(.3)
-		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
-		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.Multiplier.BuyFrame.Price.Text)
-		if cubeValue >= priceValue then
-local args = {
-	"Multiplier"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
-end
-end
-end,
+    Name = "Auto Upgrade Size Multiplier",
+    CurrentValue = false,
+    Flag = "Auto Upgrade Size Multiplier",
+    Callback = function(v)
+        getgenv().autoUpgradeSizeMultiplier = v
+    end,
 })
 
 local ToggleAutoUpgradeEatSpeed = Upgrades:CreateToggle({
-	Name = "Auto Upgrade Eat Speed",
-	CurrentValue = false,
-	Flag = "Auto Upgrade Eat Speed",
-	Callback = function(Value)
-	getgenv().autoUpgradeEatSpeed = Value
-		
-	while autoUpgradeEatSpeed do task.wait(.3)
-		local cubeValue = tonumber(plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes.Text)
-		local priceValue = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.EatSpeed.BuyFrame.Price.Text)
-		if cubeValue >= priceValue then
-local args = {
-	"EatSpeed"
-}
-game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PurchaseEvent"):FireServer(unpack(args))
-end
-end
-end,
+    Name = "Auto Upgrade Eat Speed",
+    CurrentValue = false,
+    Flag = "Auto Upgrade Eat Speed",
+    Callback = function(v)
+        getgenv().autoUpgradeEatSpeed = v
+    end,
 })
 
 Rayfield:LoadConfiguration()
