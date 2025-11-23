@@ -18,6 +18,9 @@ plr.CharacterAdded:Connect(updateCharacter)
 
 getgenv().defaultWalkSpeed = tonumber(plr.PlayerGui.ScreenGui.Shop.ShopFrames.Upgrades.UpgradeList.Speed.UpgradeFrame.Amount.Text)
 getgenv().defaultJumpPower = 50
+getgenv().currentSelectedPlayer = nil
+getgenv().tpDistance = 3
+getgenv().tpHeight = -1.5
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -46,6 +49,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Main = Window:CreateTab("Main", 124620632231839)
+local MainOthers = Window:CreateTab("MainOthers", 124620632231839)
 local Upgrades = Window:CreateTab("Upgrades", 83020221502927)
 local Others = Window:CreateTab("Others", 12122755689)
 
@@ -139,6 +143,55 @@ Others:CreateToggle({
         end
     end,
 })
+
+local ButtonGetTPTool = Others:CreateButton({
+Name = "Get TP Tool",
+Callback = function()
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local Backpack = player:WaitForChild("Backpack")
+
+if Backpack:FindFirstChild("TPTool") then
+Backpack.TPTool:Destroy()
+end
+
+local tool = Instance.new("Tool")
+tool.Name = "TPTool"
+tool.RequiresHandle = false
+tool.CanBeDropped = false
+tool.Parent = Backpack
+
+local soundId = "rbxassetid://9118823109"
+
+tool.Activated:Connect(function()
+local mouse = player:GetMouse()
+local character = player.Character
+if not character then return end
+local root = character:FindFirstChild("HumanoidRootPart")
+if not root then return end
+
+local targetPos = mouse.Hit.p + Vector3.new(0, 3, 0)  
+
+local sound = Instance.new("Sound")  
+sound.SoundId = soundId  
+sound.Volume = 1  
+sound.Parent = root  
+sound:Play()  
+game.Debris:AddItem(sound, 2)  
+
+root.CFrame = CFrame.new(targetPos)
+
+end)
+end,
+})
+
+local ButtonForceReset = Others:CreateButton({
+Name = "Force Reset",
+Callback = function()
+plr.Character.Humanoid.Health = 0
+end,
+})
+
 
 Others:CreateButton({ Name = "Fly Gui", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))() end) end })
 
@@ -428,11 +481,6 @@ local function buyUpgrade(name)
     ev:FireServer(name)
 end
 
-getgenv().autoUpgradeMaxSize = false
-getgenv().autoUpgradeWalkSpeed = false
-getgenv().autoUpgradeSizeMultiplier = false
-getgenv().autoUpgradeEatSpeed = false
-
 local upgradeList = {
     { flag = "autoUpgradeMaxSize",       gui = UpgGui.MaxSize,     name = "MaxSize" },
     { flag = "autoUpgradeWalkSpeed",     gui = UpgGui.Speed,       name = "Speed" },
@@ -497,6 +545,131 @@ local ToggleAutoUpgradeEatSpeed = Upgrades:CreateToggle({
     Flag = "Auto Upgrade Eat Speed",
     Callback = function(v)
         getgenv().autoUpgradeEatSpeed = v
+    end,
+})
+
+local function waitForCharacter(player)
+    if not player then return nil end
+    local char = player.Character
+    if char then return char end
+
+    local ok, result = pcall(function()
+        return player.CharacterAdded:Wait()
+    end)
+
+    return ok and result or nil
+end
+
+local function GetPlayers()
+    local players = {}
+    for _,v in ipairs(Players:GetPlayers()) do
+        if v ~= plr then
+            players[#players+1] = v.Name
+        end
+    end
+    return players
+end
+
+local DropdownSelectPlayers = MainOthers:CreateDropdown({
+    Name = "Select Players",
+    Options = GetPlayers(),
+    CurrentOption = nil,
+    Callback = function(opt)
+        if type(opt) == "table" then opt = opt[1] end
+        getgenv().currentSelectedPlayer = opt
+    end,
+})
+
+local ButtonRefreshSelectedPlayer = MainOthers:CreateButton({
+    Name = "Refresh Selected Player",
+    Callback = function()
+        DropdownSelectPlayers:Set(GetPlayers())
+    end,
+})
+
+local SliderDistanceToTeleport = MainOthers:CreateSlider({
+    Name = "Distance To Teleport",
+    Range = {-30, 30},
+    Increment = 1,
+    CurrentValue = 3,
+    Callback = function(v)
+        getgenv().tpDistance = v
+    end,
+})
+
+local SliderHeightToTeleport = MainOthers:CreateSlider({
+    Name = "Height To Teleport",
+    Range = {-50, 50},
+    Increment = 1,
+    CurrentValue = -1.5,
+    Callback = function(v)
+        getgenv().tpHeight = v
+    end,
+})
+
+local ButtonResetDistance = MainOthers:CreateButton({
+    Name = "Reset Distance",
+    Callback = function()
+        SliderDistanceToTeleport:Set(3)
+    end,
+})
+
+local ButtonResetHeight = MainOthers:CreateButton({
+    Name = "Reset Height",
+    Callback = function()
+        SliderHeightToTeleport:Set(-1.5)
+    end,
+})
+
+local ButtonTeleportToSelectedPlayer = MainOthers:CreateButton({
+    Name = "Teleport To Selected Player",
+    Callback = function()
+        local name = currentSelectedPlayer
+        if not name then return end
+
+        local target = Players:FindFirstChild(name)
+        if not target then return end
+
+        local targetChar = waitForCharacter(target)
+        if not targetChar then return end
+
+        local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+            or targetChar:WaitForChild("HumanoidRootPart", 3)
+
+        if hrp and targetHRP then
+            hrp.CFrame = targetHRP.CFrame * CFrame.new(0, tpHeight, tpDistance)
+        end
+    end,
+})
+
+local ToggleAutoTeleportToSelectedPlayer = MainOthers:CreateToggle({
+    Name = "Auto Teleport To Selected Player",
+    CurrentValue = false,
+    Callback = function(Value)
+        getgenv().autoTpPlayer = Value
+        
+        task.spawn(function()
+            while autoTpPlayer do
+                task.wait(.1)
+
+                local name = currentSelectedPlayer
+                if not name then continue end
+
+                local target = Players:FindFirstChild(name)
+                if not target then continue end
+
+                local targetChar = target.Character
+                if not targetChar then
+                    targetChar = waitForCharacter(target)
+                    if not targetChar then continue end
+                end
+
+                local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+                if hrp and targetHRP then
+                    hrp.CFrame = targetHRP.CFrame * CFrame.new(0, tpHeight, tpDistance)
+                end
+            end
+        end)
     end,
 })
 
