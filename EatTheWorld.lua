@@ -21,6 +21,7 @@ getgenv().defaultJumpPower = 50
 getgenv().currentSelectedPlayer = nil
 getgenv().tpDistance = 3
 getgenv().tpHeight = -1.5
+getgenv().randomTeleportTime = getgenv().randomTeleportTime or 0.5
 
 getgenv().SendNotification = function(title, content, duration, image)
 if Rayfield then
@@ -278,7 +279,7 @@ local ToggleAutoGrabWithTeleport = Main:CreateToggle({
 					task.wait(getgenv().autoThrow and 2.3 or 3.5)
 					local randPos = hrp.Position + Vector3.new(
 						math.random(-5, 10),
-						1,
+						1.3,
 						math.random(-5, 10)
 					)
 					local randRot = math.rad(math.random(0, 360))
@@ -328,19 +329,6 @@ local ToggleAutoSell = Main:CreateToggle({
 			game:GetService("Players").LocalPlayer.Character:WaitForChild("Events"):WaitForChild("Sell"):FireServer()
 			end
 end
-end,
-})
-
-local ButtonGetAllRobuxGamepasses = Main:CreateButton({
-	Name = "Get All Robux Gamepasses",
-	Callback = function(Value)
-		for _,v in pairs(plr.Gamepasses:GetChildren()) do
-			if v:IsA("BoolValue") and v.Value == false then
-				v.Value = true
-				SendNotification("Gamepasses Purchased:", v.Name, 2.5)
-				task.wait(.2)
-		end
-	end
 end,
 })
 
@@ -441,7 +429,7 @@ local ToggleAutoRandomTeleport = Main:CreateToggle({
 
 		task.spawn(function()
 			while autoTp do
-				task.wait(.3)
+				task.wait(getgenv().randomTeleportTime)
 
 				local bedrock = workspace.Map:WaitForChild("Bedrock")
 				local list = {}
@@ -458,6 +446,25 @@ local ToggleAutoRandomTeleport = Main:CreateToggle({
 			end
 		end)
 	end,
+})
+
+local SliderRandomTeleportTime = Main:CreateSlider({
+	Name = "Random Teleport Time",
+	Range = {0.1, 5},
+	Increment = 0.1,
+	CurrentValue = getgenv().randomTeleportTime,
+	Flag = "Random Teleport Time",
+	Callback = function(Value)
+		getgenv().randomTeleportTime = Value
+	end,
+})
+
+local ButtonResetTime = Main:CreateButton({
+	Name = "Reset Time",
+	Callback = function()
+		getgenv().randomTeleportTime = 0.5
+		SliderRandomTeleportTime:Set(0.5)
+end,
 })
 
 local UpgGui = plr.PlayerGui:WaitForChild("ScreenGui").Shop.ShopFrames.Upgrades.UpgradeList
