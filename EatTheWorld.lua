@@ -467,6 +467,19 @@ local ButtonResetTime = Main:CreateButton({
 end,
 })
 
+local ToggleAutoSpinRewards = Main:CreateToggle({
+	Name = "Auto Spin Rewards",
+	CurrentValue = false,
+	Flag = "Auto Spin Rewards",
+	Callback = function(Value)
+	getgenv().autoSpin = Value
+	
+	while autoSpin do task.wait(.1)
+		game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("SpinEvent"):FireServer()
+	end
+end,
+})
+
 local UpgGui = plr.PlayerGui:WaitForChild("ScreenGui").Shop.ShopFrames.Upgrades.UpgradeList
 local CubesText = plr.PlayerGui.ScreenGui.Shop.CubeFrame.CounterFrame.Cubes
 
